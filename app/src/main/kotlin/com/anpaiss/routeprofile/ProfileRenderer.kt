@@ -54,7 +54,12 @@ object ProfileRenderer {
         // Top line, as high as the cell allows but never more than a fifth of it
         val lineH = (bmp.height * 0.24f).coerceIn(14 * px, 24 * px)
         val pad = 4 * px
-        val numbers = String.format(Locale.US, "%.1f km · +%d m",
+        val climb = state.climb
+        val numbers = if (state.zoom == Zoom.CLIMB && climb != null) {
+            // on the climb: what is left to the top; approaching: the whole climb
+            val n = ClimbNumbers.of(p, climb, state.posM)
+            String.format(Locale.US, "%.1f km · +%d m · %d %%", n.distanceM / 1000.0, Math.round(n.ascentM), Math.round(n.gradePct))
+        } else String.format(Locale.US, "%.1f km · +%d m",
             (state.remainingM ?: 0.0) / 1000.0, Math.round(state.remainingAscentM ?: 0.0))
         text.typeface = condensedBold; text.color = Color.WHITE; text.textSize = lineH * 0.92f
         text.textAlign = Paint.Align.RIGHT
@@ -63,7 +68,11 @@ object ProfileRenderer {
         val numbersW = text.measureText(numbers)
         text.typeface = condensed; text.color = LABEL; text.textSize = lineH * 0.62f
         text.textAlign = Paint.Align.LEFT
-        val label = when (state.zoom) { Zoom.AHEAD -> "NEXT 10 KM"; Zoom.CLIMB -> "CLIMB"; Zoom.WHOLE -> "ROUTE" }
+        val label = when (state.zoom) {
+            Zoom.AHEAD -> "NEXT 10 KM"
+            Zoom.CLIMB -> climb?.category?.takeIf { it != ClimbCategory.UNCATEGORIZED }?.let { "CLIMB · ${it.label}" } ?: "CLIMB"
+            Zoom.WHOLE -> "ROUTE"
+        }
         // narrow cell: the numbers matter more than the label
         if (2 * pad + text.measureText(label) + 8 * px + numbersW <= bmp.width - 2 * pad) c.drawText(label, 2 * pad, base, text)
 

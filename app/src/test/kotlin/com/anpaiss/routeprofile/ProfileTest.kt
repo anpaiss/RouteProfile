@@ -84,6 +84,38 @@ class ProfileTest {
         assertEquals(ClimbCategory.UNCATEGORIZED, ClimbCategory.of(5_000.0, -3.0))   // negative: never a climb
     }
 
+    @Test fun `category from the Karoo's total elevation when it has one`() {
+        // 4 km at 7 % says 280 m (Cat 3), the Karoo measured 330 m: Cat 2
+        assertEquals(ClimbCategory.CAT2, ClimbSpan(0.0, 4_000.0, 7.0, 330.0).category)
+        assertEquals(ClimbCategory.CAT3, ClimbSpan(0.0, 4_000.0, 7.0).category)
+        assertEquals("Cat 4 — climbs from 80 m of ascent (e.g. 1 km at 8 %)", ClimbCategory.CAT4.description)
+        assertEquals("Uncategorized — under 80 m (overpasses, short ramps)", ClimbCategory.UNCATEGORIZED.description)
+        assertEquals("HC — climbs from 800 m of ascent (e.g. 10 km at 8 %)", ClimbCategory.HC.description)
+    }
+
+    @Test fun `climb numbers approaching are the whole climb`() {
+        // flat 2 km, then 4 km at 8 % (320 m), then flat
+        val p = Profile.of(listOf(0.0 to 500.0, 2_000.0 to 500.0, 6_000.0 to 820.0, 8_000.0 to 820.0))!!
+        val climb = ClimbSpan(2_000.0, 4_000.0, 8.0, 320.0)
+        val n = ClimbNumbers.of(p, climb, 1_000.0)
+        assertTrue(!n.onClimb)
+        assertEquals(4_000.0, n.distanceM, 0.1)
+        assertEquals(320.0, n.ascentM, 0.1)
+        assertEquals(8.0, n.gradePct, 0.01)
+    }
+
+    @Test fun `climb numbers on the climb are what is left to the top`() {
+        val p = Profile.of(listOf(0.0 to 500.0, 2_000.0 to 500.0, 6_000.0 to 820.0, 8_000.0 to 820.0))!!
+        val climb = ClimbSpan(2_000.0, 4_000.0, 8.0, 320.0)
+        val n = ClimbNumbers.of(p, climb, 4_200.0)
+        assertTrue(n.onClimb)
+        assertEquals(1_800.0, n.distanceM, 0.1)
+        assertEquals(144.0, n.ascentM, 3.0)
+        assertEquals(8.0, n.gradePct, 0.3)
+        // at the top: nothing left
+        assertEquals(0.0, ClimbNumbers.of(p, climb, 6_000.0).distanceM, 0.1)
+    }
+
     @Test fun `auto zoom only for enabled categories`() {
         val overpass = ClimbSpan(5_000.0, 300.0, 6.0)
         val cat2 = ClimbSpan(20_000.0, 5_000.0, 7.0)

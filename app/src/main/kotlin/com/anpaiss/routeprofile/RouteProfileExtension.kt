@@ -80,7 +80,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
                 RouteData(nav.polyline.orEmpty(), nav.elevationPolyline.orEmpty(), nav.climbs, false, null)
             else -> RouteData("", "", emptyList(), false, null)
         }
-        val climbSpans = climbs.map { ClimbSpan(it.startDistance, it.length, it.grade) }
+        val climbSpans = climbs.map { ClimbSpan(it.startDistance, it.length, it.grade, it.totalElevation) }
         if (line.isBlank() || elev.isBlank()) {
             if (routeKey.isNotEmpty() && nav !is OnNavigationState.NavigationState.NavigatingRoute &&
                 nav !is OnNavigationState.NavigationState.NavigatingToDestination) clearRoute()

@@ -17,9 +17,9 @@ data class ProfileState(
          * Sample for the profile editor and the FIELD PREVIEW: a 40 km loop like the
          * Barricata (long climb, short climb on the top, long descent, flat back), rider at km 14.5.
          */
-        fun sample(zoom: Zoom = Zoom.WHOLE): ProfileState {
+        fun sample(zoom: Zoom = Zoom.WHOLE, atM: Double? = null): ProfileState {
             // CLIMB: the rider 1.2 km before the second climb (km 16, 2.5 km), so the fitted view shows the approach too
-            val pos = if (zoom == Zoom.CLIMB) 14_800.0 else 14_500.0
+            val pos = atM ?: if (zoom == Zoom.CLIMB) 14_800.0 else 14_500.0
             val pts = ArrayList<Pair<Double, Double>>()
             var e = 320.0
             var d = 0.0

@@ -18,7 +18,7 @@ RouteProfile adds one data field, **Route profile**, made for the bottom row of 
 - **The whole route**, start to finish. The part you have ridden is grey; the part ahead is coloured by gradient: green below 3 %, yellow 3–6 %, orange 6–9 %, red 9–12 %, dark red from 12 %, blue downhill.
 - **Where you are**: a dot and a vertical line.
 - **What is left**, top right: kilometres to the end of the route and metres of climbing still to do.
-- **Auto zoom on climbs**: when a climb starts within 2 km, and while you are on it, the field shows **that climb across its whole width**, start to top, with a small margin (3 % of its length, at least 50 m): a 2 km ramp and a 15 km pass both fill the cell. While you are still approaching it, the view starts at your position, so you see how far the climb is. The label reads CLIMB; after the top it goes back to the whole route. You choose which climbs (see Settings).
+- **Auto zoom on climbs**: when a climb starts within 2 km, and while you are on it, the field shows **that climb across its whole width**, start to top, with a small margin (3 % of its length, at least 50 m): a 2 km ramp and a 15 km pass both fill the cell. While you are still approaching it, the view starts at your position, so you see how far the climb is. Top left it reads **CLIMB · Cat 2** (the climb's category, see Settings). Top right: while you approach, the whole climb, e.g. `4.0 km · +320 m · 8 %`; once on it, what is left to the top, e.g. `1.8 km · +142 m · 8 %` (distance, ascent, average grade). After the top it goes back to the whole route and its numbers. You choose which climbs (see Settings).
 - **Tap the field** to switch between the whole route and the climb when one is near or under you, otherwise the **next 10 km**, with the gradient in 100 m bands. A tap wins until the next climb.
 - No route loaded: the field says **No route**.
 
@@ -43,16 +43,16 @@ It is not on the Hammerhead app store, but once installed it appears in the Karo
 Open **RouteProfile** from the Karoo's app list.
 
 - **Auto zoom on climbs**: on by default.
-- **Zoom on these climbs**: one switch per climb category. The Karoo lists the climbs of a route but gives them no category, so RouteProfile scores each one as **length in metres × average gradient in %**, as Strava does:
+- **Zoom on these climbs**: one switch per climb category. The Karoo lists the climbs of a route but gives them no category, so RouteProfile gives them one by how much they climb (the Karoo's elevation gain of the climb, or length × grade when it has none). It is the usual length × average-grade score, which is 100 × the elevation gain:
 
-  | Category | Score | Example |
+  | Category | Climbs from | Example |
   |---|---|---|
-  | Uncategorized | below 8,000 | an overpass, a short ramp (off by default) |
-  | Cat 4 | from 8,000 | 1 km at 8 % |
-  | Cat 3 | from 16,000 | 2 km at 8 % |
-  | Cat 2 | from 32,000 | 4 km at 8 % |
-  | Cat 1 | from 64,000 | 8 km at 8 % |
-  | HC | from 80,000 | 10 km at 8 % |
+  | Uncategorized | under 80 m of ascent | overpasses, short ramps (off by default) |
+  | Cat 4 | 80 m | 1 km at 8 % |
+  | Cat 3 | 160 m | 2 km at 8 % |
+  | Cat 2 | 320 m | 4 km at 8 % |
+  | Cat 1 | 640 m | 8 km at 8 % |
+  | HC | 800 m | 10 km at 8 % |
 
 - **FIELD PREVIEW**: the field drawn by its own code at the real sizes of the Karoo cells (map page bottom row: whole route, a climb fitted by the auto zoom, the next 10 km; a taller cell, a half cell, no route), with a sample route.
 

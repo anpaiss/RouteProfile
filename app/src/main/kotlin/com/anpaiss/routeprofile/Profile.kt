@@ -7,29 +7,61 @@ import kotlin.math.min
 enum class Shade { DESCENT, EASY, MODERATE, HARD, STEEP, VERY_STEEP }
 
 /**
- * Climb categories by score = length (m) × average grade (%), Strava/UCI style
- * (Andrea, 13/11/2026). The Karoo's climbs carry no category, so we compute it.
+ * Climb categories (Andrea, 13/11/2026). The usual score is length (m) × average grade (%),
+ * which is 100 × the climb's elevation gain: so each category is an ascent threshold.
+ * The Karoo's climbs carry no category, so we compute it.
  */
-enum class ClimbCategory(val label: String, val minScore: Double) {
-    UNCATEGORIZED("Uncategorized", 0.0),
-    CAT4("Cat 4", 8_000.0),
-    CAT3("Cat 3", 16_000.0),
-    CAT2("Cat 2", 32_000.0),
-    CAT1("Cat 1", 64_000.0),
-    HC("HC", 80_000.0);
+enum class ClimbCategory(val label: String, val minAscentM: Double, val example: String) {
+    UNCATEGORIZED("Uncategorized", 0.0, "overpasses, short ramps"),
+    CAT4("Cat 4", 80.0, "1 km at 8 %"),
+    CAT3("Cat 3", 160.0, "2 km at 8 %"),
+    CAT2("Cat 2", 320.0, "4 km at 8 %"),
+    CAT1("Cat 1", 640.0, "8 km at 8 %"),
+    HC("HC", 800.0, "10 km at 8 %");
+
+    /** The plain-words line of the app: "Cat 4 — climbs from 80 m of ascent (e.g. 1 km at 8 %)". */
+    val description: String get() =
+        if (this == UNCATEGORIZED) "$label — under ${CAT4.minAscentM.toInt()} m ($example)"
+        else "$label — climbs from ${minAscentM.toInt()} m of ascent (e.g. $example)"
 
     companion object {
-        fun of(lengthM: Double, gradePct: Double): ClimbCategory {
-            val score = lengthM * gradePct
-            return entries.lastOrNull { score >= it.minScore } ?: UNCATEGORIZED
-        }
+        fun ofAscent(ascentM: Double): ClimbCategory =
+            entries.lastOrNull { ascentM >= it.minAscentM } ?: UNCATEGORIZED
+
+        /** From length and grade: score length × grade = 100 × ascent. */
+        fun of(lengthM: Double, gradePct: Double): ClimbCategory = ofAscent(lengthM * gradePct / 100.0)
     }
 }
 
-/** A climb as the Karoo lists it on the route (start along the route and length, metres; average grade, %). */
-data class ClimbSpan(val startM: Double, val lengthM: Double, val gradePct: Double = 0.0) {
+/**
+ * A climb as the Karoo lists it on the route: start along the route and length (m), average
+ * grade (%) and, when the Karoo gives it, its total elevation gain (m).
+ */
+data class ClimbSpan(val startM: Double, val lengthM: Double, val gradePct: Double = 0.0, val totalElevationM: Double = 0.0) {
     val endM get() = startM + lengthM
-    val category get() = ClimbCategory.of(lengthM, gradePct)
+    /** The Karoo's total elevation when it has one, else length × grade / 100. */
+    val ascentM get() = if (totalElevationM > 0.0) totalElevationM else lengthM * gradePct / 100.0
+    val category get() = ClimbCategory.ofAscent(ascentM)
+}
+
+/** The numbers of the CLIMB view: distance, ascent and average grade (of what is left, once on it). */
+data class ClimbNumbers(val distanceM: Double, val ascentM: Double, val gradePct: Double, val onClimb: Boolean) {
+    companion object {
+        /**
+         * Approaching (before the start): the whole climb as the Karoo lists it.
+         * On the climb: from the rider to the top, on the route's own elevation.
+         */
+        fun of(profile: Profile, climb: ClimbSpan, posM: Double?): ClimbNumbers {
+            if (posM == null || posM < climb.startM) {
+                val grade = if (climb.gradePct > 0) climb.gradePct else climb.ascentM / climb.lengthM * 100.0
+                return ClimbNumbers(climb.lengthM, climb.ascentM, grade, onClimb = false)
+            }
+            val left = (climb.endM - posM).coerceAtLeast(0.0)
+            val up = profile.ascentBetween(posM, climb.endM)
+            val grade = if (left > 0) (profile.elevationAt(climb.endM) - profile.elevationAt(posM)) / left * 100.0 else 0.0
+            return ClimbNumbers(left, up, grade, onClimb = true)
+        }
+    }
 }
 
 /**
@@ -97,12 +129,22 @@ class Profile private constructor(val stepM: Double, val ele: DoubleArray, priva
      * every 50 m, not on the smoothed drawing: the smoothing rounded summits off and gave
      * 886 m on a route Komoot puts at 963 m (Valmaron, 13/11/2026).
      */
-    fun ascentFrom(fromM: Double): Double {
-        val x = (fromM / stepM).coerceIn(0.0, (raw.size - 1).toDouble())
-        val i0 = x.toInt().coerceAtMost(raw.size - 2)
-        val here = raw[i0] + (raw[i0 + 1] - raw[i0]) * (x - i0)
-        var up = max(0.0, raw[i0 + 1] - here)
-        for (i in i0 + 1 until raw.size - 1) up += max(0.0, raw[i + 1] - raw[i])
+    fun ascentFrom(fromM: Double): Double = ascentBetween(fromM, totalM)
+
+    /** Ascent between two points of the route, metres, on the unsmoothed samples. */
+    fun ascentBetween(fromM: Double, toM: Double): Double {
+        if (toM <= fromM) return 0.0
+        fun at(m: Double): Double {
+            val x = (m / stepM).coerceIn(0.0, (raw.size - 1).toDouble())
+            val i = x.toInt().coerceAtMost(raw.size - 2)
+            return raw[i] + (raw[i + 1] - raw[i]) * (x - i)
+        }
+        val i0 = (fromM / stepM).toInt().coerceIn(0, raw.size - 1)
+        val i1 = (toM / stepM).toInt().coerceIn(0, raw.size - 1)
+        var prev = at(fromM)
+        var up = 0.0
+        for (i in i0 + 1..i1) { up += max(0.0, raw[i] - prev); prev = raw[i] }
+        up += max(0.0, at(toM) - prev)
         return up
     }
 

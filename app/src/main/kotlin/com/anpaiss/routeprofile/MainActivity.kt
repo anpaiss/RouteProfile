@@ -46,12 +46,10 @@ class MainActivity : Activity() {
             "A tap always switches; the automatic choice takes over again at the next climb.", 13f))
 
         col.addView(text("Zoom on these climbs", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
-        col.addView(text("Category from length (m) × average grade (%): Cat 4 from 8,000, Cat 3 from 16,000, " +
-            "Cat 2 from 32,000, Cat 1 from 64,000, HC from 80,000. Below 8,000: uncategorized (an overpass, a short ramp).", 13f))
+        col.addView(text("A climb's category goes by how much it climbs.", 13f))
         val catSwitches = ClimbCategory.entries.map { cat ->
             Switch(this).apply {
-                val hint = if (cat == ClimbCategory.UNCATEGORIZED) "score below 8,000" else "score from %,d".format(cat.minScore.toInt())
-                text = "${cat.label}  ($hint)"; textSize = 16f
+                text = cat.description; textSize = 16f
                 isChecked = Prefs.zoomOn(this@MainActivity, cat)
                 isEnabled = sw.isChecked
                 setPadding(dp(12), dp(6), 0, dp(6))
@@ -80,7 +78,8 @@ class MainActivity : Activity() {
             }, LinearLayout.LayoutParams(shownW, shownW * h / w).apply { bottomMargin = dp(8) })
         }
         preview("Map page, bottom row (478×126): whole route", ProfileState.sample(Zoom.WHOLE), 478, 126)
-        preview("Auto zoom, approaching a climb: the climb fitted to the cell", ProfileState.sample(Zoom.CLIMB), 478, 126)
+        preview("Auto zoom, approaching a climb: the whole climb fitted to the cell", ProfileState.sample(Zoom.CLIMB), 478, 126)
+        preview("On the climb: what is left to the top", ProfileState.sample(Zoom.CLIMB, atM = 17_000.0), 478, 126)
         preview("A tap with no climb near: next 10 km", ProfileState.sample(Zoom.AHEAD), 478, 126)
         preview("Taller cell (478×212)", ProfileState.sample(Zoom.WHOLE), 478, 212)
         preview("Half cell (238×126)", ProfileState.sample(Zoom.WHOLE), 238, 126)
