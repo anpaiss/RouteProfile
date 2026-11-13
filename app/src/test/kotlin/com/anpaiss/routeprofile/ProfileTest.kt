@@ -194,11 +194,25 @@ class ProfileTest {
 
     @Test fun `zoom window stays inside the route`() {
         assertEquals(0.0 to 40_000.0, ZoomLogic.window(Zoom.WHOLE, 18_000.0, 40_000.0))
-        assertEquals(17_000.0 to 27_000.0, ZoomLogic.window(Zoom.AHEAD, 18_000.0, 40_000.0))
-        assertEquals(0.0 to 10_000.0, ZoomLogic.window(Zoom.AHEAD, 300.0, 40_000.0))
-        assertEquals(30_000.0 to 40_000.0, ZoomLogic.window(Zoom.AHEAD, 39_500.0, 40_000.0))
-        assertEquals(0.0 to 8_000.0, ZoomLogic.window(Zoom.AHEAD, 4_000.0, 8_000.0))
-        assertEquals(0.0 to 10_000.0, ZoomLogic.window(Zoom.AHEAD, null, 40_000.0))   // no position yet
+        assertEquals(17_000.0 to 27_000.0, ZoomLogic.window(Zoom.AHEAD_10, 18_000.0, 40_000.0))
+        assertEquals(0.0 to 10_000.0, ZoomLogic.window(Zoom.AHEAD_10, 300.0, 40_000.0))
+        assertEquals(30_000.0 to 40_000.0, ZoomLogic.window(Zoom.AHEAD_10, 39_500.0, 40_000.0))
+        assertEquals(0.0 to 8_000.0, ZoomLogic.window(Zoom.AHEAD_10, 4_000.0, 8_000.0))
+        assertEquals(0.0 to 10_000.0, ZoomLogic.window(Zoom.AHEAD_10, null, 40_000.0))   // no position yet
+        assertEquals(17_500.0 to 22_500.0, ZoomLogic.window(Zoom.AHEAD_5, 18_000.0, 40_000.0))
+        assertEquals(17_800.0 to 19_800.0, ZoomLogic.window(Zoom.AHEAD_2, 18_000.0, 40_000.0))
+    }
+
+    @Test fun `a tap steps whole, climb, 10, 5, 2 km and skips views longer than the route`() {
+        fun cycle(hasClimb: Boolean, totalM: Double): List<Zoom> {
+            val seen = mutableListOf(Zoom.WHOLE)
+            while (true) { val n = ZoomLogic.next(seen.last(), hasClimb, totalM); if (n == Zoom.WHOLE) return seen; seen += n }
+        }
+        assertEquals(listOf(Zoom.WHOLE, Zoom.CLIMB, Zoom.AHEAD_10, Zoom.AHEAD_5, Zoom.AHEAD_2), cycle(true, 40_000.0))
+        assertEquals(listOf(Zoom.WHOLE, Zoom.AHEAD_10, Zoom.AHEAD_5, Zoom.AHEAD_2), cycle(false, 40_000.0))
+        assertEquals(listOf(Zoom.WHOLE, Zoom.AHEAD_5, Zoom.AHEAD_2), cycle(false, 7_400.0))
+        assertEquals(listOf(Zoom.WHOLE), cycle(false, 1_500.0))
+        assertEquals(Zoom.WHOLE, ZoomLogic.next(Zoom.CLIMB, false, 40_000.0))   // the climb is gone
     }
 
     @Test fun `projection finds the distance along the route`() {

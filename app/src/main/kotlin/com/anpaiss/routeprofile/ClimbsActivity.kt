@@ -21,7 +21,7 @@ import io.hammerhead.karooext.models.RideState
 import java.util.Locale
 
 /**
- * The climbs popup: a tap on the field while the ride is paused. The route's climbs in order,
+ * The climbs popup: a tap on the field before the start or with the ride paused. The route's climbs in order,
  * coloured by category, the next one highlighted, those done dimmed with a ✓; it closes with
  * CLOSE or by itself when the ride records again. With [EXTRA_SAMPLE] it shows the sample route
  * (TEST POPUP in the app).

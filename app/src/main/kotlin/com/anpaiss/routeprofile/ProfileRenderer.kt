@@ -92,9 +92,9 @@ object ProfileRenderer {
         text.typeface = condensed; text.color = LABEL; text.textSize = lineH * 0.62f
         text.textAlign = Paint.Align.LEFT
         val label = when (state.zoom) {
-            Zoom.AHEAD -> "NEXT 10 KM"
             Zoom.CLIMB -> climb?.category?.takeIf { it != ClimbCategory.UNCATEGORIZED }?.let { "CLIMB · ${it.label}" } ?: "CLIMB"
             Zoom.WHOLE -> "ROUTE"
+            else -> state.zoom.label
         }
         // narrow cell: the numbers matter more than the label
         if (2 * pad + text.measureText(label) + 8 * px + numbersW <= bmp.width - 2 * pad) c.drawText(label, 2 * pad, base, text)

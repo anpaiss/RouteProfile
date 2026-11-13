@@ -52,7 +52,7 @@ class ProfileDataType(
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val (w, h) = config.viewSize
         val density = context.resources.displayMetrics.density
-        // While the ride is paused a tap opens the climbs popup; otherwise it switches the zoom
+        // While not recording (before the start or paused) a tap opens the climbs popup; otherwise it switches the zoom
         val tap = if (config.preview) null else TapReceiver.pendingIntent(context)
         val climbsPopup = if (config.preview) null else ClimbsActivity.pendingIntent(context)
         scope.launch {

@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Tap on the field while the ride is paused: the route's climbs -->
+        <!-- Tap on the field while not recording: the route's climbs -->
         <activity
             android:name=".ClimbsActivity"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
@@ -31,7 +31,7 @@
             android:taskAffinity=""
             android:exported="false" />
 
-        <!-- Tap on the field: whole route / next 10 km -->
+        <!-- Tap on the field: the next zoom view -->
         <receiver
             android:name=".TapReceiver"
             android:exported="false" />

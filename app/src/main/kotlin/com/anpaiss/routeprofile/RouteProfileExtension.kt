@@ -63,7 +63,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
     private fun subscribe() {
         consumers += karoo.addConsumer(RideState.Params, { _ -> }, {}) { r: RideState ->
             _rideState.value = r
-            _state.value = _state.value.copy(paused = r is RideState.Paused)
+            _state.value = _state.value.copy(paused = r !is RideState.Recording)
         }
         consumers += karoo.addConsumer(OnNavigationState.Params, { _ -> }, {}) { e: OnNavigationState -> onNav(e.state) }
         consumers += karoo.addConsumer(
@@ -142,19 +142,17 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         val climb = ZoomLogic.activeClimb(pos, s.climbs, Prefs.zoomCategories(this))
         val auto = if (Prefs.autoZoom(this) && climb != null) Zoom.CLIMB else Zoom.WHOLE
         if (auto != lastAuto) { manual = null; lastAuto = auto }
-        // a manual CLIMB with no climb near any more becomes the 10 km view
-        val m = manual?.let { if (it == Zoom.CLIMB && climb == null) aheadOrWhole(s) else it }
+        // a manual CLIMB with no climb near any more goes back to the whole route
+        val m = manual?.let { if (it == Zoom.CLIMB && climb == null) Zoom.WHOLE else it }
         _state.value = s.copy(posM = pos, zoom = m ?: auto, climb = climb)
     }
 
-    /** The 10 km view, or the whole route when the route is no longer than that (the two would look the same). */
-    private fun aheadOrWhole(s: ProfileState): Zoom =
-        if ((s.profile?.totalM ?: 0.0) > ZoomLogic.AHEAD_M) Zoom.AHEAD else Zoom.WHOLE
+    private fun total(s: ProfileState) = s.profile?.totalM ?: 0.0
 
-    /** Whole route <-> the climb when one is near or under the rider, otherwise <-> the next 10 km. */
+    /** Whole route -> the climb (when one is near) -> 10 -> 5 -> 2 km -> whole route, skipping views longer than the route. */
     fun onTap() {
         val s = _state.value
-        manual = if (s.zoom != Zoom.WHOLE) Zoom.WHOLE else if (s.climb != null) Zoom.CLIMB else aheadOrWhole(s)
+        manual = ZoomLogic.next(s.zoom, s.climb != null, total(s))
         _state.value = s.copy(zoom = manual!!)
     }
 

@@ -7,7 +7,7 @@ import android.content.Intent
 
 /**
  * A tap on the field (RemoteViews.setOnClickPendingIntent, as in KarooSwitches and boschRange):
- * whole route <-> next 10 km.
+ * whole route, climb, next 10 / 5 / 2 km.
  */
 class TapReceiver : BroadcastReceiver() {
     companion object {

@@ -174,13 +174,26 @@ class Profile private constructor(val stepM: Double, val ele: DoubleArray, priva
     data class Band(val fromM: Double, val toM: Double, val shade: Shade)
 }
 
-/** WHOLE route, the next 10 km (AHEAD) or the climb fitted to the cell (CLIMB). */
-enum class Zoom { WHOLE, AHEAD, CLIMB }
+/** WHOLE route, the climb fitted to the cell (CLIMB), or a window of [spanM] around the rider (AHEAD_*). */
+enum class Zoom(val spanM: Double = 0.0, val label: String = "") {
+    WHOLE, CLIMB, AHEAD_10(10_000.0, "NEXT 10 KM"), AHEAD_5(5_000.0, "NEXT 5 KM"), AHEAD_2(2_000.0, "NEXT 2 KM")
+}
 
 object ZoomLogic {
-    /** The 10 km view starts this far behind the rider and shows [AHEAD_M] in all. */
-    const val BEHIND_M = 1_000.0
-    const val AHEAD_M = 10_000.0
+    /** A window view starts this share of its span behind the rider (1 km of the 10 km view). */
+    const val BEHIND_SHARE = 0.1
+    /** The tap order: whole route, the climb (when one is near), 10, 5, 2 km, whole route again. */
+    private val CYCLE = listOf(Zoom.WHOLE, Zoom.CLIMB, Zoom.AHEAD_10, Zoom.AHEAD_5, Zoom.AHEAD_2)
+
+    /**
+     * The view after [current] on a tap. The climb only when one is near; a window only when the
+     * route is longer than it (shorter, it would draw the same as the whole route).
+     */
+    fun next(current: Zoom, hasClimb: Boolean, totalM: Double): Zoom {
+        val usable = CYCLE.filter { it == Zoom.WHOLE || (it == Zoom.CLIMB && hasClimb) || (it.spanM > 0 && totalM > it.spanM) }
+        val i = usable.indexOf(current)
+        return if (i < 0) Zoom.WHOLE else usable[(i + 1) % usable.size]
+    }
     /** Auto-zoom: a climb that starts within this distance, or one we are on. */
     const val CLIMB_NEAR_M = 2_000.0
     /** Margin on each side of a fitted climb: 3 % of its length, at least 50 m. */
@@ -201,7 +214,7 @@ object ZoomLogic {
     /**
      * Distance window [from, to] shown for [zoom]. CLIMB fits [climb] to the cell, from its start
      * (or from the rider, while still approaching it) to its end, with a small margin.
-     * Before the first position the 10 km view shows the first 10 km.
+     * Before the first position a window view shows the start of the route.
      */
     fun window(zoom: Zoom, posM: Double?, totalM: Double, climb: ClimbSpan? = null): Pair<Double, Double> {
         if (zoom == Zoom.CLIMB && climb != null) {
@@ -209,9 +222,11 @@ object ZoomLogic {
             val start = if (posM != null && posM < climb.startM) posM else climb.startM
             return max(0.0, start - margin) to min(totalM, climb.endM + margin)
         }
-        if (zoom == Zoom.WHOLE || totalM <= AHEAD_M) return 0.0 to totalM
-        var from = (posM ?: BEHIND_M) - BEHIND_M
-        var to = from + AHEAD_M
+        val span = zoom.spanM
+        if (span <= 0.0 || totalM <= span) return 0.0 to totalM
+        val behind = span * BEHIND_SHARE
+        var from = (posM ?: behind) - behind
+        var to = from + span
         if (from < 0) { to -= from; from = 0.0 }
         if (to > totalM) { from -= to - totalM; to = totalM }
         return max(0.0, from) to to

@@ -8,7 +8,7 @@ data class ProfileState(
     val zoom: Zoom = Zoom.WHOLE,
     /** The climb the CLIMB view fits, when one is near or under the rider. */
     val climb: ClimbSpan? = null,
-    /** Ride paused: a tap opens the climbs popup instead of switching the zoom. */
+    /** Not recording (paused, or before the start): a tap opens the climbs popup instead of switching the zoom. */
     val paused: Boolean = false,
     /** The Karoo's own instant grade (%), as its Grade field shows it; null = no value. */
     val gradePct: Double? = null,

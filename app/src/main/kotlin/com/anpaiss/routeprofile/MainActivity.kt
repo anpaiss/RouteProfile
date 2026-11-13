@@ -30,7 +30,7 @@ class MainActivity : Activity() {
         col.addView(text("RouteProfile", 26f, bold = true))
         col.addView(text("The whole route's elevation, coloured by gradient, with where you are and the distance and climb still to go. " +
             "Put \"Route profile\" in the bottom row of the map page, full width (add it as the third field, or alone). " +
-            "Tap the field: whole route / the climb (or the next 10 km when no climb is near); with the ride paused, the list of the climbs.", 15f))
+            "Tap the field: whole route, the climb (when one is near), next 10, 5, 2 km, whole route again; before the start or with the ride paused, the list of the climbs.", 15f))
 
         val sw = Switch(this).apply {
             text = "Auto zoom on climbs"; textSize = 17f
@@ -66,7 +66,7 @@ class MainActivity : Activity() {
         }
 
         col.addView(text("Climbs popup", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
-        col.addView(text("With the ride paused, a tap on the field lists the route's climbs, coloured by category, the next one highlighted. " +
+        col.addView(text("Before the start or with the ride paused, a tap on the field lists the route's climbs, coloured by category, the next one highlighted. " +
             "It closes with CLOSE or when the ride records again.", 13f))
         col.addView(android.widget.Button(this).apply {
             text = "TEST POPUP: CLIMBS"
@@ -90,7 +90,7 @@ class MainActivity : Activity() {
         preview("Map page, bottom row (478×126): whole route", ProfileState.sample(Zoom.WHOLE), 478, 126)
         preview("Auto zoom, approaching a climb: the whole climb fitted to the cell", ProfileState.sample(Zoom.CLIMB), 478, 126)
         preview("On the climb: what is left to the top", ProfileState.sample(Zoom.CLIMB, atM = 17_000.0), 478, 126)
-        preview("A tap with no climb near: next 10 km", ProfileState.sample(Zoom.AHEAD), 478, 126)
+        preview("A tap with no climb near: next 10 km", ProfileState.sample(Zoom.AHEAD_10), 478, 126)
         preview("Downhill: the instant grade in blue, with its sign", ProfileState.sample(Zoom.WHOLE, atM = 26_000.0).copy(gradePct = -8.0), 478, 126)
         preview("Taller cell (478×212)", ProfileState.sample(Zoom.WHOLE), 478, 212)
         preview("Half cell (238×126)", ProfileState.sample(Zoom.WHOLE), 238, 126)

@@ -1,7 +1,7 @@
 package com.anpaiss.routeprofile
 
 /**
- * The list of the climbs popup (tap on the field while the ride is paused): the route's climbs in
+ * The list of the climbs popup (tap on the field while not recording): the route's climbs in
  * route order, which ones are done, the next one and how far it is, and what is still ahead.
  */
 data class ClimbRow(
