@@ -67,8 +67,8 @@ class ProfileTest {
     @Test fun `auto zoom near and on a climb, whole route otherwise`() {
         val climbs = listOf(ClimbSpan(5000.0, 3000.0))
         assertEquals(Zoom.WHOLE, ZoomLogic.auto(1000.0, climbs))
-        assertEquals(Zoom.AHEAD, ZoomLogic.auto(3500.0, climbs))
-        assertEquals(Zoom.AHEAD, ZoomLogic.auto(7000.0, climbs))
+        assertEquals(Zoom.CLIMB, ZoomLogic.auto(3500.0, climbs))
+        assertEquals(Zoom.CLIMB, ZoomLogic.auto(7000.0, climbs))
         assertEquals(Zoom.WHOLE, ZoomLogic.auto(8500.0, climbs))
         assertEquals(Zoom.WHOLE, ZoomLogic.auto(null, climbs))
     }
@@ -89,9 +89,37 @@ class ProfileTest {
         val cat2 = ClimbSpan(20_000.0, 5_000.0, 7.0)
         val defaults = ClimbCategory.entries.toSet() - ClimbCategory.UNCATEGORIZED
         assertEquals(Zoom.WHOLE, ZoomLogic.auto(4_500.0, listOf(overpass, cat2), defaults))
-        assertEquals(Zoom.AHEAD, ZoomLogic.auto(4_500.0, listOf(overpass, cat2), ClimbCategory.entries.toSet()))
-        assertEquals(Zoom.AHEAD, ZoomLogic.auto(19_000.0, listOf(overpass, cat2), defaults))
+        assertEquals(Zoom.CLIMB, ZoomLogic.auto(4_500.0, listOf(overpass, cat2), ClimbCategory.entries.toSet()))
+        assertEquals(Zoom.CLIMB, ZoomLogic.auto(19_000.0, listOf(overpass, cat2), defaults))
         assertEquals(Zoom.WHOLE, ZoomLogic.auto(19_000.0, listOf(overpass, cat2), defaults - ClimbCategory.CAT2))
+    }
+
+    @Test fun `climb window fits a 2 km and a 15 km climb with a small margin`() {
+        val short = ClimbSpan(20_000.0, 2_000.0, 8.0)
+        // on the climb: start - 60 m to end + 60 m (3 % of 2 km)
+        assertEquals(19_940.0 to 22_060.0, ZoomLogic.window(Zoom.CLIMB, 20_500.0, 40_000.0, short))
+        val long = ClimbSpan(5_000.0, 15_000.0, 7.0)
+        // 3 % of 15 km = 450 m
+        assertEquals(4_550.0 to 20_450.0, ZoomLogic.window(Zoom.CLIMB, 9_000.0, 40_000.0, long))
+        // a very short climb still gets 50 m each side
+        val ramp = ClimbSpan(1_000.0, 1_000.0, 9.0)
+        assertEquals(950.0 to 2_050.0, ZoomLogic.window(Zoom.CLIMB, 1_200.0, 40_000.0, ramp))
+    }
+
+    @Test fun `climb window while approaching starts at the rider`() {
+        val climb = ClimbSpan(20_000.0, 2_000.0, 8.0)
+        assertEquals(18_440.0 to 22_060.0, ZoomLogic.window(Zoom.CLIMB, 18_500.0, 40_000.0, climb))
+        // clipped to the route
+        val last = ClimbSpan(38_500.0, 1_500.0, 8.0)
+        assertEquals(38_450.0 to 40_000.0, ZoomLogic.window(Zoom.CLIMB, 38_600.0, 40_000.0, last))
+    }
+
+    @Test fun `active climb is the nearest enabled one`() {
+        val climbs = listOf(ClimbSpan(5_000.0, 300.0, 6.0), ClimbSpan(6_000.0, 3_000.0, 8.0))
+        val defaults = ClimbCategory.entries.toSet() - ClimbCategory.UNCATEGORIZED
+        assertEquals(climbs[1], ZoomLogic.activeClimb(4_500.0, climbs, defaults))
+        assertEquals(climbs[0], ZoomLogic.activeClimb(4_500.0, climbs, ClimbCategory.entries.toSet()))
+        assertNull(ZoomLogic.activeClimb(9_500.0, climbs, defaults))
     }
 
     @Test fun `zoom window stays inside the route`() {

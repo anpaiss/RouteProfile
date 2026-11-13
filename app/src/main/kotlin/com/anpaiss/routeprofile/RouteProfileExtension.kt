@@ -122,15 +122,20 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
     private fun publish() {
         val s = _state.value
         val pos = karooPosM ?: gpsPosM
-        val auto = if (Prefs.autoZoom(this)) ZoomLogic.auto(pos, s.climbs, Prefs.zoomCategories(this)) else Zoom.WHOLE
+        // the climb near or under the rider, among the categories switched on in the app
+        val climb = ZoomLogic.activeClimb(pos, s.climbs, Prefs.zoomCategories(this))
+        val auto = if (Prefs.autoZoom(this) && climb != null) Zoom.CLIMB else Zoom.WHOLE
         if (auto != lastAuto) { manual = null; lastAuto = auto }
-        _state.value = s.copy(posM = pos, zoom = manual ?: auto)
+        // a manual CLIMB with no climb near any more becomes the 10 km view
+        val m = manual?.let { if (it == Zoom.CLIMB && climb == null) Zoom.AHEAD else it }
+        _state.value = s.copy(posM = pos, zoom = m ?: auto, climb = climb)
     }
 
+    /** Whole route <-> the climb when one is near or under the rider, otherwise <-> the next 10 km. */
     fun onTap() {
-        val now = _state.value.zoom
-        manual = if (now == Zoom.WHOLE) Zoom.AHEAD else Zoom.WHOLE
-        _state.value = _state.value.copy(zoom = manual!!)
+        val s = _state.value
+        manual = if (s.zoom != Zoom.WHOLE) Zoom.WHOLE else if (s.climb != null) Zoom.CLIMB else Zoom.AHEAD
+        _state.value = s.copy(zoom = manual!!)
     }
 
     /** The app page changed the auto-zoom switch. */

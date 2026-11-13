@@ -63,7 +63,7 @@ object ProfileRenderer {
         val numbersW = text.measureText(numbers)
         text.typeface = condensed; text.color = LABEL; text.textSize = lineH * 0.62f
         text.textAlign = Paint.Align.LEFT
-        val label = if (state.zoom == Zoom.AHEAD) "NEXT 10 KM" else "ROUTE"
+        val label = when (state.zoom) { Zoom.AHEAD -> "NEXT 10 KM"; Zoom.CLIMB -> "CLIMB"; Zoom.WHOLE -> "ROUTE" }
         // narrow cell: the numbers matter more than the label
         if (2 * pad + text.measureText(label) + 8 * px + numbersW <= bmp.width - 2 * pad) c.drawText(label, 2 * pad, base, text)
 
@@ -73,7 +73,7 @@ object ProfileRenderer {
         val top = pad + lineH + 3 * px
         val bottom = bmp.height - pad
         if (bottom - top < 8 * px) return bmp
-        val (from, to) = ZoomLogic.window(state.zoom, state.posM, p.totalM)
+        val (from, to) = ZoomLogic.window(state.zoom, state.posM, p.totalM, state.climb)
         val span = max(1.0, to - from)
         var lo = Double.MAX_VALUE; var hi = -Double.MAX_VALUE
         var m = from

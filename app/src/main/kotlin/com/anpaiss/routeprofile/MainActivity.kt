@@ -30,7 +30,7 @@ class MainActivity : Activity() {
         col.addView(text("RouteProfile", 26f, bold = true))
         col.addView(text("The whole route's elevation, coloured by gradient, with where you are and the distance and climb still to go. " +
             "Put \"Route profile\" in the bottom row of the map page, full width (add it as the third field, or alone). " +
-            "Tap the field: whole route / next 10 km.", 15f))
+            "Tap the field: whole route / the climb (or the next 10 km when no climb is near).", 15f))
 
         val sw = Switch(this).apply {
             text = "Auto zoom on climbs"; textSize = 17f
@@ -42,7 +42,7 @@ class MainActivity : Activity() {
             }
         }
         col.addView(sw)
-        col.addView(text("On: the next 10 km when a climb starts within 2 km and while you are on it, then the whole route again. " +
+        col.addView(text("On: when a climb starts within 2 km, and while you are on it, the field shows that climb across its whole width, then the whole route again. " +
             "A tap always switches; the automatic choice takes over again at the next climb.", 13f))
 
         col.addView(text("Zoom on these climbs", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
@@ -80,7 +80,8 @@ class MainActivity : Activity() {
             }, LinearLayout.LayoutParams(shownW, shownW * h / w).apply { bottomMargin = dp(8) })
         }
         preview("Map page, bottom row (478×126): whole route", ProfileState.sample(Zoom.WHOLE), 478, 126)
-        preview("Same, after a tap: next 10 km", ProfileState.sample(Zoom.AHEAD), 478, 126)
+        preview("Auto zoom, approaching a climb: the climb fitted to the cell", ProfileState.sample(Zoom.CLIMB), 478, 126)
+        preview("A tap with no climb near: next 10 km", ProfileState.sample(Zoom.AHEAD), 478, 126)
         preview("Taller cell (478×212)", ProfileState.sample(Zoom.WHOLE), 478, 212)
         preview("Half cell (238×126)", ProfileState.sample(Zoom.WHOLE), 238, 126)
         preview("No route", ProfileState(), 478, 126)

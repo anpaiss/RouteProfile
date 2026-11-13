@@ -123,25 +123,41 @@ class Profile private constructor(val stepM: Double, val ele: DoubleArray, priva
     data class Band(val fromM: Double, val toM: Double, val shade: Shade)
 }
 
-enum class Zoom { WHOLE, AHEAD }
+/** WHOLE route, the next 10 km (AHEAD) or the climb fitted to the cell (CLIMB). */
+enum class Zoom { WHOLE, AHEAD, CLIMB }
 
 object ZoomLogic {
-    /** The zoomed view starts this far behind the rider and shows [AHEAD_M] in all. */
+    /** The 10 km view starts this far behind the rider and shows [AHEAD_M] in all. */
     const val BEHIND_M = 1_000.0
     const val AHEAD_M = 10_000.0
     /** Auto-zoom: a climb that starts within this distance, or one we are on. */
     const val CLIMB_NEAR_M = 2_000.0
+    /** Margin on each side of a fitted climb: 3 % of its length, at least 50 m. */
+    const val CLIMB_MARGIN = 0.03
+    const val CLIMB_MARGIN_MIN_M = 50.0
 
-    /** Zoom on a climb near or under the rider whose category is in [enabled]. */
-    fun auto(posM: Double?, climbs: List<ClimbSpan>, enabled: Set<ClimbCategory> = ClimbCategory.entries.toSet()): Zoom {
-        if (posM == null) return Zoom.WHOLE
-        return if (climbs.any { it.category in enabled && posM >= it.startM - CLIMB_NEAR_M && posM <= it.endM })
-            Zoom.AHEAD else Zoom.WHOLE
+    /** The climb near (within [CLIMB_NEAR_M] of its start) or under the rider, among the [enabled] categories. */
+    fun activeClimb(posM: Double?, climbs: List<ClimbSpan>, enabled: Set<ClimbCategory> = ClimbCategory.entries.toSet()): ClimbSpan? {
+        if (posM == null) return null
+        return climbs.filter { it.category in enabled && posM >= it.startM - CLIMB_NEAR_M && posM <= it.endM }
+            .minByOrNull { it.startM }
     }
 
-    /** Distance window [from, to] shown for [zoom]. */
-    /** Before the first position the zoomed view shows the first 10 km. */
-    fun window(zoom: Zoom, posM: Double?, totalM: Double): Pair<Double, Double> {
+    /** Zoom on a climb near or under the rider whose category is in [enabled]. */
+    fun auto(posM: Double?, climbs: List<ClimbSpan>, enabled: Set<ClimbCategory> = ClimbCategory.entries.toSet()): Zoom =
+        if (activeClimb(posM, climbs, enabled) != null) Zoom.CLIMB else Zoom.WHOLE
+
+    /**
+     * Distance window [from, to] shown for [zoom]. CLIMB fits [climb] to the cell, from its start
+     * (or from the rider, while still approaching it) to its end, with a small margin.
+     * Before the first position the 10 km view shows the first 10 km.
+     */
+    fun window(zoom: Zoom, posM: Double?, totalM: Double, climb: ClimbSpan? = null): Pair<Double, Double> {
+        if (zoom == Zoom.CLIMB && climb != null) {
+            val margin = max(CLIMB_MARGIN_MIN_M, climb.lengthM * CLIMB_MARGIN)
+            val start = if (posM != null && posM < climb.startM) posM else climb.startM
+            return max(0.0, start - margin) to min(totalM, climb.endM + margin)
+        }
         if (zoom == Zoom.WHOLE || totalM <= AHEAD_M) return 0.0 to totalM
         var from = (posM ?: BEHIND_M) - BEHIND_M
         var to = from + AHEAD_M
