@@ -143,14 +143,18 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         val auto = if (Prefs.autoZoom(this) && climb != null) Zoom.CLIMB else Zoom.WHOLE
         if (auto != lastAuto) { manual = null; lastAuto = auto }
         // a manual CLIMB with no climb near any more becomes the 10 km view
-        val m = manual?.let { if (it == Zoom.CLIMB && climb == null) Zoom.AHEAD else it }
+        val m = manual?.let { if (it == Zoom.CLIMB && climb == null) aheadOrWhole(s) else it }
         _state.value = s.copy(posM = pos, zoom = m ?: auto, climb = climb)
     }
+
+    /** The 10 km view, or the whole route when the route is no longer than that (the two would look the same). */
+    private fun aheadOrWhole(s: ProfileState): Zoom =
+        if ((s.profile?.totalM ?: 0.0) > ZoomLogic.AHEAD_M) Zoom.AHEAD else Zoom.WHOLE
 
     /** Whole route <-> the climb when one is near or under the rider, otherwise <-> the next 10 km. */
     fun onTap() {
         val s = _state.value
-        manual = if (s.zoom != Zoom.WHOLE) Zoom.WHOLE else if (s.climb != null) Zoom.CLIMB else Zoom.AHEAD
+        manual = if (s.zoom != Zoom.WHOLE) Zoom.WHOLE else if (s.climb != null) Zoom.CLIMB else aheadOrWhole(s)
         _state.value = s.copy(zoom = manual!!)
     }
 
