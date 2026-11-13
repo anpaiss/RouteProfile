@@ -30,7 +30,7 @@ class MainActivity : Activity() {
         col.addView(text("RouteProfile", 26f, bold = true))
         col.addView(text("The whole route's elevation, coloured by gradient, with where you are and the distance and climb still to go. " +
             "Put \"Route profile\" in the bottom row of the map page, full width (add it as the third field, or alone). " +
-            "Tap the field: whole route / the climb (or the next 10 km when no climb is near).", 15f))
+            "Tap the field: whole route / the climb (or the next 10 km when no climb is near); with the ride paused, the list of the climbs.", 15f))
 
         val sw = Switch(this).apply {
             text = "Auto zoom on climbs"; textSize = 17f
@@ -64,6 +64,16 @@ class MainActivity : Activity() {
             catSwitches.forEach { it.isEnabled = on }
             RouteProfileExtension.instance?.settingsChanged()
         }
+
+        col.addView(text("Climbs popup", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
+        col.addView(text("With the ride paused, a tap on the field lists the route's climbs, coloured by category, the next one highlighted. " +
+            "It closes with CLOSE or when the ride records again.", 13f))
+        col.addView(android.widget.Button(this).apply {
+            text = "TEST POPUP: CLIMBS"
+            setOnClickListener {
+                startActivity(android.content.Intent(this@MainActivity, ClimbsActivity::class.java).putExtra(ClimbsActivity.EXTRA_SAMPLE, true))
+            }
+        })
 
         col.addView(text("FIELD PREVIEW", 17f, bold = true).apply { setPadding(0, dp(18), 0, dp(4)) })
         col.addView(text("Sample route, rider at km 14.5. Sizes of the Karoo 3 cells.", 13f))

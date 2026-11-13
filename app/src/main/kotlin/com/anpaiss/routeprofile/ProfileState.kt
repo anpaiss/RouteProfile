@@ -8,6 +8,8 @@ data class ProfileState(
     val zoom: Zoom = Zoom.WHOLE,
     /** The climb the CLIMB view fits, when one is near or under the rider. */
     val climb: ClimbSpan? = null,
+    /** Ride paused: a tap opens the climbs popup instead of switching the zoom. */
+    val paused: Boolean = false,
 ) {
     val remainingM: Double? get() = profile?.let { p -> posM?.let { (p.totalM - it).coerceAtLeast(0.0) } ?: p.totalM }
     val remainingAscentM: Double? get() = profile?.ascentFrom(posM ?: 0.0)
@@ -35,13 +37,14 @@ data class ProfileState(
             go(3_000.0, 4.0); go(4_000.0, 9.0, 2.0); go(3_000.0, 7.0, 3.0); go(2_000.0, 3.0)
             go(4_000.0, 0.0, 2.0); go(1_500.0, 6.0, 2.0); go(1_000.0, 10.0); go(500.0, -3.0)
             go(10_000.0, -10.0, 2.0); go(2_000.0, -3.0); go(7_000.0, 0.3, 0.5)
-            val climbs = listOf(ClimbSpan(0.0, 12_000.0, 6.5), ClimbSpan(16_000.0, 2_500.0, 7.0))
+            // a long first climb (Cat 1), a short ramp on the plateau (uncategorized), the summit climb (Cat 3)
+            val climbs = listOf(ClimbSpan(0.0, 12_000.0, 6.5), ClimbSpan(13_200.0, 400.0, 5.0), ClimbSpan(16_000.0, 2_500.0, 7.0))
             return ProfileState(
                 profile = Profile.of(pts),
                 posM = pos,
                 climbs = climbs,
                 zoom = zoom,
-                climb = if (zoom == Zoom.CLIMB) climbs[1] else null,
+                climb = if (zoom == Zoom.CLIMB) climbs[2] else null,
             )
         }
     }

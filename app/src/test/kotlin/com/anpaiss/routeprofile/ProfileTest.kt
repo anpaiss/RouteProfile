@@ -116,6 +116,34 @@ class ProfileTest {
         assertEquals(0.0, ClimbNumbers.of(p, climb, 6_000.0).distanceM, 0.1)
     }
 
+    @Test fun `climb list in route order with done, next and totals`() {
+        val climbs = listOf(
+            ClimbSpan(23_400.0, 4_100.0, 8.0, 330.0),
+            ClimbSpan(2_000.0, 1_000.0, 8.0, 80.0),
+            ClimbSpan(10_000.0, 2_000.0, 8.0, 160.0),
+        )
+        val l = ClimbList.of(climbs, 21_600.0)
+        assertEquals(listOf(2_000.0, 10_000.0, 23_400.0), l.rows.map { it.climb.startM })
+        assertEquals(listOf(true, true, false), l.rows.map { it.done })
+        assertEquals(listOf(false, false, true), l.rows.map { it.next })
+        assertEquals(1_800.0, l.rows[2].inM!!, 0.1)
+        assertEquals(3, l.total)
+        assertEquals(1, l.ahead)
+        assertEquals(330.0, l.aheadAscentM, 0.1)
+    }
+
+    @Test fun `climb list on a climb, before the start and empty`() {
+        val climbs = listOf(ClimbSpan(2_000.0, 1_000.0, 8.0, 80.0), ClimbSpan(10_000.0, 2_000.0, 8.0, 160.0))
+        val on = ClimbList.of(climbs, 2_500.0)
+        assertTrue(on.rows[0].next); assertEquals(0.0, on.rows[0].inM!!, 0.1); assertEquals(2, on.ahead)
+        assertEquals(240.0, on.aheadAscentM, 0.1)
+        val before = ClimbList.of(climbs, null)
+        assertTrue(before.rows[0].next); assertEquals(2_000.0, before.rows[0].inM!!, 0.1)
+        val after = ClimbList.of(climbs, 30_000.0)
+        assertEquals(0, after.ahead); assertTrue(after.rows.none { it.next })
+        assertEquals(0, ClimbList.of(emptyList(), 100.0).total)
+    }
+
     @Test fun `auto zoom only for enabled categories`() {
         val overpass = ClimbSpan(5_000.0, 300.0, 6.0)
         val cat2 = ClimbSpan(20_000.0, 5_000.0, 7.0)

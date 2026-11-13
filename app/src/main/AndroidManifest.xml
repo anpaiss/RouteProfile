@@ -23,6 +23,14 @@
             </intent-filter>
         </activity>
 
+        <!-- Tap on the field while the ride is paused: the route's climbs -->
+        <activity
+            android:name=".ClimbsActivity"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:exported="false" />
+
         <!-- Tap on the field: whole route / next 10 km -->
         <receiver
             android:name=".TapReceiver"

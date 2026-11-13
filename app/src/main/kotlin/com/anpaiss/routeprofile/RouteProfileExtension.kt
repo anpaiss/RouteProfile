@@ -6,6 +6,7 @@ import io.hammerhead.karooext.models.DataType
 import io.hammerhead.karooext.models.OnLocationChanged
 import io.hammerhead.karooext.models.OnNavigationState
 import io.hammerhead.karooext.models.OnStreamState
+import io.hammerhead.karooext.models.RideState
 import io.hammerhead.karooext.models.StreamState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,7 +56,15 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         super.onDestroy()
     }
 
+    /** Recording, paused or idle, for the climbs popup (it closes itself when recording resumes). */
+    private val _rideState = MutableStateFlow<RideState>(RideState.Idle)
+    val rideState: StateFlow<RideState> get() = _rideState
+
     private fun subscribe() {
+        consumers += karoo.addConsumer(RideState.Params, { _ -> }, {}) { r: RideState ->
+            _rideState.value = r
+            _state.value = _state.value.copy(paused = r is RideState.Paused)
+        }
         consumers += karoo.addConsumer(OnNavigationState.Params, { _ -> }, {}) { e: OnNavigationState -> onNav(e.state) }
         consumers += karoo.addConsumer(
             OnStreamState.StartStreaming(DataType.Type.DISTANCE_TO_DESTINATION), { _ -> }, {}
@@ -103,7 +112,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         routeLengthM = length ?: profile?.totalM
         projection = if (pts.size >= 2) Projection(pts, routeLengthM) else null
         karooPosM = null; gpsPosM = null; manual = null
-        _state.value = ProfileState(profile = profile, climbs = climbSpans)
+        _state.value = ProfileState(profile = profile, climbs = climbSpans, paused = _state.value.paused)
         publish()
     }
 
@@ -116,7 +125,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
     private fun clearRoute() {
         routeKey = ""; routeLengthM = null; projection = null
         karooPosM = null; gpsPosM = null; manual = null
-        _state.value = ProfileState()
+        _state.value = ProfileState(paused = _state.value.paused)
     }
 
     private fun publish() {

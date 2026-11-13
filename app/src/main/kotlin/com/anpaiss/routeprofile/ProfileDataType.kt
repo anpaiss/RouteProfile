@@ -52,7 +52,9 @@ class ProfileDataType(
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         val (w, h) = config.viewSize
         val density = context.resources.displayMetrics.density
+        // While the ride is paused a tap opens the climbs popup; otherwise it switches the zoom
         val tap = if (config.preview) null else TapReceiver.pendingIntent(context)
+        val climbsPopup = if (config.preview) null else ClimbsActivity.pendingIntent(context)
         scope.launch {
             emitter.onNext(UpdateGraphicConfig(showHeader = false))
             val source = if (config.preview) flowOf(ProfileState.sample()) else state
@@ -63,7 +65,7 @@ class ProfileDataType(
                 try {
                     val views = RemoteViews(context.packageName, R.layout.view_profile)
                     views.setImageViewBitmap(R.id.iv, ProfileRenderer.render(s, w, h, density))
-                    tap?.let { views.setOnClickPendingIntent(R.id.root, it) }
+                    (if (s.paused) climbsPopup else tap)?.let { views.setOnClickPendingIntent(R.id.root, it) }
                     emitter.updateView(views)
                 } catch (_: Exception) { /* never take the field down with a drawing error */ }
                 delay(REDRAW_MS)

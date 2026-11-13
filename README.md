@@ -21,6 +21,7 @@ RouteProfile adds one data field, **Route profile**, made for the bottom row of 
 - **Auto zoom on climbs**: when a climb starts within 2 km, and while you are on it, the field shows **that climb across its whole width**, start to top, with a small margin (3 % of its length, at least 50 m): a 2 km ramp and a 15 km pass both fill the cell. While you are still approaching it, the view starts at your position, so you see how far the climb is. Top left it reads **CLIMB · Cat 2** (the climb's category, see Settings). Top right: while you approach, the whole climb, e.g. `4.0 km · +320 m · 8 %`; once on it, what is left to the top, e.g. `1.8 km · +142 m · 8 %` (distance, ascent, average grade). After the top it goes back to the whole route and its numbers. You choose which climbs (see Settings).
 - **Tap the field** to switch between the whole route and the climb when one is near or under you, otherwise the **next 10 km**, with the gradient in 100 m bands. A tap wins until the next climb.
 - No route loaded: the field says **No route**.
+- **The climbs of the route, with the ride paused**: a tap on the field while the ride is paused opens a list of the route's climbs, in route order, one row each: start km, category, length, ascent, average grade (`km 23.4  Cat 2  4.1 km  +330 m  8 %`). The row is coloured by category, the harder the hotter: grey uncategorized, green Cat 4, yellow Cat 3, orange Cat 2, red Cat 1, purple HC. The next climb is outlined with how far it is (`in 1.8 km`), the climbs done are dimmed with a ✓; at the bottom, what is still ahead (`Ahead: 3 climbs, +820 m`). It closes with CLOSE, or by itself when the ride records again. While recording, a tap only switches the zoom. **TEST POPUP: CLIMBS** in the app shows it with a sample route.
 
 ![Auto zoom: the climb ahead fitted to the cell, the dot still before its start](docs/climb.png)
 
@@ -55,6 +56,8 @@ Open **RouteProfile** from the Karoo's app list.
   | HC | 800 m | 10 km at 8 % |
 
 - **FIELD PREVIEW**: the field drawn by its own code at the real sizes of the Karoo cells (map page bottom row: whole route, a climb fitted by the auto zoom, the next 10 km; a taller cell, a half cell, no route), with a sample route.
+
+![The climbs popup](docs/climbs.png)
 
 ![The RouteProfile app](docs/app.png)
 
