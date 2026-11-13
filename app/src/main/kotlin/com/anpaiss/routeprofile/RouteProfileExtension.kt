@@ -74,6 +74,13 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
             karooPosM = if (v != null && len != null && v >= 0) (len - v).coerceIn(0.0, len) else null
             publish()
         }
+        // the Karoo's instant grade, the value of its native Grade field (already smoothed by the Karoo)
+        consumers += karoo.addConsumer(
+            OnStreamState.StartStreaming(DataType.Type.ELEVATION_GRADE), { _ -> }, {}
+        ) { e: OnStreamState ->
+            val g = (e.state as? StreamState.Streaming)?.dataPoint?.values?.get(DataType.Field.ELEVATION_GRADE)
+            _state.value = _state.value.copy(gradePct = g?.takeIf { it.isFinite() })
+        }
         consumers += karoo.addConsumer(OnLocationChanged.Params, { _ -> }, {}) { e: OnLocationChanged ->
             val p = projection ?: return@addConsumer
             gpsPosM = p.along(e.lat, e.lng, hintM = gpsPosM ?: karooPosM)
@@ -112,7 +119,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         routeLengthM = length ?: profile?.totalM
         projection = if (pts.size >= 2) Projection(pts, routeLengthM) else null
         karooPosM = null; gpsPosM = null; manual = null
-        _state.value = ProfileState(profile = profile, climbs = climbSpans, paused = _state.value.paused)
+        _state.value = ProfileState(profile = profile, climbs = climbSpans, paused = _state.value.paused, gradePct = _state.value.gradePct)
         publish()
     }
 
@@ -125,7 +132,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
     private fun clearRoute() {
         routeKey = ""; routeLengthM = null; projection = null
         karooPosM = null; gpsPosM = null; manual = null
-        _state.value = ProfileState(paused = _state.value.paused)
+        _state.value = ProfileState(paused = _state.value.paused, gradePct = _state.value.gradePct)
     }
 
     private fun publish() {

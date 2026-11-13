@@ -10,6 +10,8 @@ data class ProfileState(
     val climb: ClimbSpan? = null,
     /** Ride paused: a tap opens the climbs popup instead of switching the zoom. */
     val paused: Boolean = false,
+    /** The Karoo's own instant grade (%), as its Grade field shows it; null = no value. */
+    val gradePct: Double? = null,
 ) {
     val remainingM: Double? get() = profile?.let { p -> posM?.let { (p.totalM - it).coerceAtLeast(0.0) } ?: p.totalM }
     val remainingAscentM: Double? get() = profile?.ascentFrom(posM ?: 0.0)
@@ -45,6 +47,7 @@ data class ProfileState(
                 climbs = climbs,
                 zoom = zoom,
                 climb = if (zoom == Zoom.CLIMB) climbs[2] else null,
+                gradePct = 6.0,
             )
         }
     }

@@ -36,6 +36,29 @@ object ProfileRenderer {
     private val condensed: Typeface by lazy { Typeface.create("ibm-plex-sans-condensed", Typeface.NORMAL) }
     private val condensedBold: Typeface by lazy { Typeface.create(condensed, Typeface.BOLD) }
 
+    /**
+     * The instant grade beside the dot, in the profile's colour on a dark pill: to the right of the
+     * dot, or to its left near the right edge; above it, but never over the top line nor below
+     * the cell. Dropped when the profile area is too low for it.
+     */
+    private fun drawGrade(c: Canvas, g: Double, rx: Float, ry: Float, left: Float, right: Float,
+                          top: Float, bottom: Float, lineH: Float, px: Float) {
+        val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = condensedBold; textSize = lineH * 0.8f; color = colorOf(InstantGrade.shade(g)) }
+        val label = InstantGrade.text(g)
+        val tw = p.measureText(label)
+        val th = p.textSize
+        val padX = 3 * px; val padY = 1.5f * px
+        if (bottom - top < th + 2 * padY) return
+        val gap = 8 * px
+        var x = rx + gap
+        if (x + tw + padX > right) x = rx - gap - tw
+        x = x.coerceIn(left + padX, right - tw - padX)
+        val base = (ry - 6 * px).coerceIn(top + th + padY, bottom - padY)
+        val bg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xCC000000.toInt() }
+        c.drawRoundRect(RectF(x - padX, base - th * 0.85f - padY, x + tw + padX, base + th * 0.2f + padY), 4 * px, 4 * px, bg)
+        c.drawText(label, x, base, p)
+    }
+
     fun render(state: ProfileState, w: Int, h: Int, density: Float): Bitmap {
         val bmp = Bitmap.createBitmap(max(w, 40), max(h, 30), Bitmap.Config.ARGB_8888)
         val c = Canvas(bmp)
@@ -132,6 +155,7 @@ object ProfileRenderer {
             val ry = y(p.elevationAt(pos))
             c.drawCircle(rx, ry, r + 1.5f * px, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE })
             c.drawCircle(rx, ry, r, dot)
+            state.gradePct?.let { g -> drawGrade(c, g, rx, ry, left, right, top, bottom, lineH, px) }
         }
         return bmp
     }

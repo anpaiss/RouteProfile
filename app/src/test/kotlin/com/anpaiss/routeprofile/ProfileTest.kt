@@ -33,6 +33,16 @@ class ProfileTest {
         assertNull(Profile.of(listOf(0.0 to 100.0)))
     }
 
+    @Test fun `instant grade text and colour class`() {
+        assertEquals("8 %", InstantGrade.text(7.6))
+        assertEquals("0 %", InstantGrade.text(-0.4))
+        assertEquals("−5 %", InstantGrade.text(-5.2))
+        assertEquals(Shade.HARD, InstantGrade.shade(7.6))
+        assertEquals(Shade.DESCENT, InstantGrade.shade(-5.2))
+        assertEquals(Shade.EASY, InstantGrade.shade(-1.0))
+        assertEquals(Shade.VERY_STEEP, InstantGrade.shade(14.0))
+    }
+
     @Test fun `gradient classes`() {
         assertEquals(Shade.DESCENT, Profile.shadeOf(-5.0))
         assertEquals(Shade.EASY, Profile.shadeOf(-1.0))

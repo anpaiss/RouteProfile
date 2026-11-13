@@ -91,6 +91,7 @@ class MainActivity : Activity() {
         preview("Auto zoom, approaching a climb: the whole climb fitted to the cell", ProfileState.sample(Zoom.CLIMB), 478, 126)
         preview("On the climb: what is left to the top", ProfileState.sample(Zoom.CLIMB, atM = 17_000.0), 478, 126)
         preview("A tap with no climb near: next 10 km", ProfileState.sample(Zoom.AHEAD), 478, 126)
+        preview("Downhill: the instant grade in blue, with its sign", ProfileState.sample(Zoom.WHOLE, atM = 26_000.0).copy(gradePct = -8.0), 478, 126)
         preview("Taller cell (478×212)", ProfileState.sample(Zoom.WHOLE), 478, 212)
         preview("Half cell (238×126)", ProfileState.sample(Zoom.WHOLE), 238, 126)
         preview("No route", ProfileState(), 478, 126)

@@ -44,6 +44,15 @@ data class ClimbSpan(val startM: Double, val lengthM: Double, val gradePct: Doub
     val category get() = ClimbCategory.ofAscent(ascentM)
 }
 
+/** The Karoo's instant grade next to the rider dot: "8 %", "-5 %" downhill, the profile's colour class. */
+object InstantGrade {
+    fun text(gradePct: Double): String {
+        val r = Math.round(gradePct).toInt()
+        return if (r < 0) "−${-r} %" else "$r %"
+    }
+    fun shade(gradePct: Double): Shade = Profile.shadeOf(gradePct)
+}
+
 /** The numbers of the CLIMB view: distance, ascent and average grade (of what is left, once on it). */
 data class ClimbNumbers(val distanceM: Double, val ascentM: Double, val gradePct: Double, val onClimb: Boolean) {
     companion object {
