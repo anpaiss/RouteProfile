@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">RouteProfile</string>
+    <string name="field_name">Route profile</string>
+    <string name="field_desc">The whole route\'s elevation, coloured by gradient, with where you are and what is left. Tap: whole route / next 10 km. Made for the bottom row of the map page.</string>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ExtensionInfo
+    displayName="@string/app_name"
+    icon="@drawable/ic_route_profile"
+    id="routeprofile"
+    scansDevices="false">
+
+    <DataType
+        typeId="route-profile"
+        displayName="@string/field_name"
+        description="@string/field_desc"
+        graphical="true"
+        icon="@drawable/ic_route_profile" />
+
+</ExtensionInfo>

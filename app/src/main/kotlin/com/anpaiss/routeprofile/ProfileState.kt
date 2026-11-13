@@ -1,0 +1,42 @@
+package com.anpaiss.routeprofile
+
+/** Everything the field draws. [profile] null = no route. */
+data class ProfileState(
+    val profile: Profile? = null,
+    val posM: Double? = null,
+    val climbs: List<ClimbSpan> = emptyList(),
+    val zoom: Zoom = Zoom.WHOLE,
+) {
+    val remainingM: Double? get() = profile?.let { p -> posM?.let { (p.totalM - it).coerceAtLeast(0.0) } ?: p.totalM }
+    val remainingAscentM: Double? get() = profile?.ascentFrom(posM ?: 0.0)
+
+    companion object {
+        /**
+         * Sample for the profile editor and the FIELD PREVIEW: a 40 km loop like the
+         * Barricata (long climb, short climb on the top, long descent, flat back), rider at km 14.5.
+         */
+        fun sample(zoom: Zoom = Zoom.WHOLE): ProfileState {
+            val pts = ArrayList<Pair<Double, Double>>()
+            var e = 320.0
+            var d = 0.0
+            fun go(lenM: Double, gradePct: Double, wobble: Double = 0.0) {
+                val steps = (lenM / 100).toInt()
+                repeat(steps) { i ->
+                    d += 100.0
+                    e += gradePct + wobble * kotlin.math.sin(i / 3.0)
+                    pts.add(d to e)
+                }
+            }
+            pts.add(0.0 to e)
+            go(3_000.0, 4.0); go(4_000.0, 9.0, 2.0); go(3_000.0, 7.0, 3.0); go(2_000.0, 3.0)
+            go(4_000.0, 0.0, 2.0); go(1_500.0, 6.0, 2.0); go(1_000.0, 10.0); go(500.0, -3.0)
+            go(10_000.0, -10.0, 2.0); go(2_000.0, -3.0); go(7_000.0, 0.3, 0.5)
+            return ProfileState(
+                profile = Profile.of(pts),
+                posM = 14_500.0,
+                climbs = listOf(ClimbSpan(0.0, 12_000.0), ClimbSpan(16_000.0, 2_500.0)),
+                zoom = zoom,
+            )
+        }
+    }
+}
