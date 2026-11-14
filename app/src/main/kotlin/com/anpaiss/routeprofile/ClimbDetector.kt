@@ -1,9 +1,9 @@
 package com.anpaiss.routeprofile
 
 /**
- * The route's climbs found on its own elevation. The Karoo sends none for imported routes (BetterETA's
- * logs, 194 route states from September to November 2026: always 0), so the auto zoom, the popup and the
- * climb fields would never work without this.
+ * The route's climbs found on its own elevation, used until the Karoo sends its own: it does during the
+ * ride (BetterETA's samples, rides of 18 and 24/10/2026), but not before the start nor indoors without
+ * GPS, so without this the popup and the climb fields would be empty there.
  *
  * Checked on the seven lagorai.bike routes (14/11/2026): Menador 13.7-21.3 km +726 m (the climb Andrea
  * describes from km 14 to 22), Barricata 0-11 km +955 m, Manghen in three pieces split by its false

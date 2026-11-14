@@ -117,7 +117,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         }
         val key = "${line.hashCode()}/${elev.hashCode()}/$reversed"
         if (key == routeKey) {
-            // the Karoo's climbs when it sends any; none (imported routes, always so far): ours stay
+            // the Karoo's climbs as soon as it sends them (they win over ours); none yet: ours stay
             if (climbSpans.isNotEmpty()) _state.value = _state.value.copy(climbs = climbSpans)
             return
         }
@@ -133,7 +133,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         routeLengthM = length ?: profile?.totalM
         projection = if (pts.size >= 2) Projection(pts, routeLengthM) else null
         karooPosM = null; gpsPosM = null; manual = null
-        // The Karoo sends no climbs for imported routes: find them on the route's own elevation
+        // The Karoo's climbs when it has them; until it sends them (before the start, indoors) ours from the elevation
         val routeClimbs = climbSpans.ifEmpty { profile?.let { ClimbDetector.find(it.ele, it.stepM) }.orEmpty() }
         _state.value = ProfileState(profile = profile, climbs = routeClimbs, paused = _state.value.paused, gradePct = _state.value.gradePct)
         publish()
