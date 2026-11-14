@@ -26,6 +26,33 @@ object ClimbDetector {
     const val MIN_LENGTH_M = 300.0
     const val MIN_GRADE = 3.0
 
+    /** A Karoo climb counts as placed right when the route's elevation over it matches its ascent this closely. */
+    const val ALIGN_TOLERANCE = 0.15
+    const val ALIGN_TOLERANCE_MIN_M = 15.0
+
+    /**
+     * The Karoo's climbs placed on the route, or null when they cannot be trusted. When navigation starts
+     * part-way along the route (KarooSim, 14/11/2026: from km 10 of the Menador) the Karoo counts its climbs
+     * from there, and once even sent a shorter climb (2.2-7.8 km for 12.2-20.3). So: try no shift, then the
+     * shifts that line a Karoo climb's start or top up with one of [own]; keep the first (smallest) shift under
+     * which every Karoo climb rises as much on the route's elevation [elevAt] as the Karoo says.
+     */
+    fun align(karoo: List<ClimbSpan>, own: List<ClimbSpan>, elevAt: (Double) -> Double, totalM: Double): List<ClimbSpan>? {
+        if (karoo.isEmpty()) return null
+        val shifts = (listOf(0.0) + own.flatMap { o -> karoo.flatMap { k -> listOf(o.startM - k.startM, o.endM - k.endM) } })
+            .distinct().sortedBy { kotlin.math.abs(it) }
+        for (d in shifts) {
+            val moved = karoo.map { it.copy(startM = it.startM + d) }
+            if (moved.any { it.startM < -50.0 || it.endM > totalM + 50.0 }) continue
+            val fits = moved.all { c ->
+                val rise = elevAt(c.endM.coerceAtMost(totalM)) - elevAt(c.startM.coerceAtLeast(0.0))
+                kotlin.math.abs(rise - c.ascentM) <= maxOf(ALIGN_TOLERANCE_MIN_M, ALIGN_TOLERANCE * c.ascentM)
+            }
+            if (fits) return moved
+        }
+        return null
+    }
+
     /** [ele]: the smoothed elevation every [stepM] metres. */
     fun find(ele: DoubleArray, stepM: Double): List<ClimbSpan> {
         val out = ArrayList<ClimbSpan>()

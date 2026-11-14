@@ -28,5 +28,22 @@ class ClimbDetectorTest {
         check("passo-manghen-telve", listOf(
             Triple(0.0, 1_100.0, 96.8), Triple(3_550.0, 4_250.0, 372.0), Triple(7_900.0, 9_550.0, 747.8)))
 
+    @Test fun `Karoo climbs kept, shifted back in place, or refused`() {
+        val e = ele("menador-drago-vaia-passo-vezzena")
+        fun at(m: Double): Double { val i = (m / 50.0).toInt().coerceIn(0, e.size - 2); val t = m / 50.0 - i; return e[i] + (e[i + 1] - e[i]) * t }
+        val total = (e.size - 1) * 50.0
+        val own = ClimbDetector.find(e, 50.0)
+        val big = own[0]
+        // the Karoo's own climb, right where it is: kept as it is
+        val karoo = listOf(ClimbSpan(big.startM, big.lengthM, 0.0, big.totalElevationM))
+        assertEquals(big.startM, ClimbDetector.align(karoo, own, ::at, total)!![0].startM, 1.0)
+        // counted from km 10 (navigation started there): moved back by 10 km
+        val fromKm10 = listOf(ClimbSpan(big.startM - 10_000.0, big.lengthM, 0.0, big.totalElevationM))
+        assertEquals(big.startM, ClimbDetector.align(fromKm10, own, ::at, total)!![0].startM, 1.0)
+        // a climb that rises far less on the route than the Karoo says (the 2.2-7.8 km case): refused
+        val wrong = listOf(ClimbSpan(2_200.0, 5_600.0, 0.0, 780.0))
+        assertEquals(null, ClimbDetector.align(wrong, own, ::at, total))
+    }
+
     @Test fun `flat route, no climb`() = assertEquals(0, ClimbDetector.find(DoubleArray(200) { 500.0 }, 50.0).size)
 }

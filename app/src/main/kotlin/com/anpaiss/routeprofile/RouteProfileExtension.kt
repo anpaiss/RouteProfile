@@ -118,7 +118,9 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         val key = "${line.hashCode()}/${elev.hashCode()}/$reversed"
         if (key == routeKey) {
             // the Karoo's climbs as soon as it sends them (they win over ours); none yet: ours stay
-            if (climbSpans.isNotEmpty()) _state.value = _state.value.copy(climbs = climbSpans)
+            if (climbSpans.isNotEmpty()) _state.value.profile?.let { p ->
+                _state.value = _state.value.copy(climbs = placeClimbs(climbSpans, p))
+            }
             return
         }
         routeKey = key
@@ -134,9 +136,15 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         projection = if (pts.size >= 2) Projection(pts, routeLengthM) else null
         karooPosM = null; gpsPosM = null; manual = null
         // The Karoo's climbs when it has them; until it sends them (before the start, indoors) ours from the elevation
-        val routeClimbs = climbSpans.ifEmpty { profile?.let { ClimbDetector.find(it.ele, it.stepM) }.orEmpty() }
+        val routeClimbs = profile?.let { placeClimbs(climbSpans, it) }.orEmpty()
         _state.value = ProfileState(profile = profile, climbs = routeClimbs, paused = _state.value.paused, gradePct = _state.value.gradePct)
         publish()
+    }
+
+    /** The Karoo's climbs placed on the route when they check out against its elevation, else ours. */
+    private fun placeClimbs(karoo: List<ClimbSpan>, p: Profile): List<ClimbSpan> {
+        val own = ClimbDetector.find(p.ele, p.stepM)
+        return ClimbDetector.align(karoo, own, p::elevationAt, p.totalM) ?: own
     }
 
     private data class RouteData(
