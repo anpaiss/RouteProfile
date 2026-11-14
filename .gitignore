@@ -16,3 +16,6 @@ app/.release.keystore
 
 # Reddit drafts
 reddit_post*.md
+
+# Screenshots for README and Reddit, some with the map near home: never committed
+screenshots/
