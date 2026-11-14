@@ -145,7 +145,8 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         // a manual CLIMB with no climb near any more goes back to the whole route
         val m = manual?.let { if (it == Zoom.CLIMB && climb == null) Zoom.WHOLE else it }
         // the 10/5/2 km choice applies to the automatic climb view; a tapped CLIMB shows the whole climb
-        _state.value = s.copy(posM = pos, zoom = m ?: auto, climb = climb, climbSpanM = if (m == null) Prefs.autoSpanM(this) else 0.0)
+        _state.value = s.copy(posM = pos, zoom = m ?: auto, climb = climb, climbSpanM = if (m == null) Prefs.autoSpanM(this) else 0.0,
+            smooth = Prefs.smooth(this), graphOnly = Prefs.graphOnly(this))
     }
 
     private fun total(s: ProfileState) = s.profile?.totalM ?: 0.0

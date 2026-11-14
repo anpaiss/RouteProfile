@@ -165,13 +165,13 @@ class Profile private constructor(val stepM: Double, val ele: DoubleArray, priva
         while (a < toM && a < totalM) {
             val b = min(a + len, totalM)
             val g = (elevationAt(b) - elevationAt(a)) / (b - a) * 100.0
-            out.add(Band(max(a, fromM), min(b, toM), shadeOf(g)))
+            out.add(Band(max(a, fromM), min(b, toM), shadeOf(g), g))
             a = b
         }
         return out
     }
 
-    data class Band(val fromM: Double, val toM: Double, val shade: Shade)
+    data class Band(val fromM: Double, val toM: Double, val shade: Shade, val gradePct: Double = 0.0)
 }
 
 /** WHOLE route, the climb fitted to the cell (CLIMB), or a window of [spanM] around the rider (AHEAD_*). */

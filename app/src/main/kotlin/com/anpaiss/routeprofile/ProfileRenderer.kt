@@ -3,9 +3,11 @@ package com.anpaiss.routeprofile
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Shader
 import android.graphics.Typeface
 import java.util.Locale
 import kotlin.math.max
@@ -33,6 +35,24 @@ object ProfileRenderer {
         Shade.HARD -> HARD; Shade.STEEP -> STEEP; Shade.VERY_STEEP -> VERY_STEEP
     }
 
+    /** Smooth colours: each class colour sits at the middle of its range, the grades between blend. */
+    private val ANCHORS = listOf(-6.0 to DESCENT, -2.5 to DESCENT, -1.0 to EASY, 1.5 to EASY, 4.5 to MODERATE,
+        7.5 to HARD, 10.5 to STEEP, 13.5 to VERY_STEEP)
+
+    fun smoothColorOf(g: Double): Int {
+        if (g <= ANCHORS.first().first) return ANCHORS.first().second
+        for (i in 1 until ANCHORS.size) {
+            val (g1, c1) = ANCHORS[i]
+            if (g <= g1) {
+                val (g0, c0) = ANCHORS[i - 1]
+                val t = ((g - g0) / (g1 - g0)).toFloat()
+                fun ch(sh: Int) = (((c0 shr sh) and 0xFF) + (((c1 shr sh) and 0xFF) - ((c0 shr sh) and 0xFF)) * t).toInt()
+                return Color.rgb(ch(16), ch(8), ch(0))
+            }
+        }
+        return ANCHORS.last().second
+    }
+
     private val condensed: Typeface by lazy { Typeface.create("ibm-plex-sans-condensed", Typeface.NORMAL) }
     private val condensedBold: Typeface by lazy { Typeface.create(condensed, Typeface.BOLD) }
 
@@ -42,8 +62,9 @@ object ProfileRenderer {
      * the cell. Dropped when the profile area is too low for it.
      */
     private fun drawGrade(c: Canvas, g: Double, rx: Float, ry: Float, left: Float, right: Float,
-                          top: Float, bottom: Float, lineH: Float, px: Float) {
-        val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = condensedBold; textSize = lineH * 0.8f; color = colorOf(InstantGrade.shade(g)) }
+                          top: Float, bottom: Float, lineH: Float, px: Float, smooth: Boolean) {
+        val col = if (smooth) smoothColorOf(g) else colorOf(InstantGrade.shade(g))
+        val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = condensedBold; textSize = lineH * 0.8f; color = col }
         val label = InstantGrade.text(g)
         val tw = p.measureText(label)
         val th = p.textSize
@@ -74,10 +95,11 @@ object ProfileRenderer {
             return bmp
         }
 
-        // Top line, as high as the cell allows but never more than a fifth of it
+        // Top line, as high as the cell allows but never more than a fifth of it (also sizes the grade pill)
         val lineH = (bmp.height * 0.24f).coerceIn(14 * px, 24 * px)
         val pad = 4 * px
         val climb = state.climb
+        if (!state.graphOnly) {
         val numbers = if (state.zoom == Zoom.CLIMB && climb != null) {
             // on the climb: what is left to the top; approaching: the whole climb
             val n = ClimbNumbers.of(p, climb, state.posM)
@@ -98,11 +120,12 @@ object ProfileRenderer {
         }
         // narrow cell: the numbers matter more than the label
         if (2 * pad + text.measureText(label) + 8 * px + numbersW <= bmp.width - 2 * pad) c.drawText(label, 2 * pad, base, text)
+        }
 
-        // Profile area
+        // Profile area: below the top line, or the whole cell when the graph is alone
         val left = 2 * pad
         val right = bmp.width - 2 * pad
-        val top = pad + lineH + 3 * px
+        val top = if (state.graphOnly) pad + 2 * px else pad + lineH + 3 * px
         val bottom = bmp.height - pad
         if (bottom - top < 8 * px) return bmp
         val (from, to) = ZoomLogic.window(state.zoom, state.posM, p.totalM, state.climb, state.climbSpanM)
@@ -120,7 +143,25 @@ object ProfileRenderer {
         val pos = state.posM
         // ~90 bands across the cell: 100 m when zoomed, ~500 m on a 44 km route (a barcode otherwise)
         val bandM = Math.ceil(span / Profile.BANDS_PER_VIEW / 100.0) * 100.0
-        for (b in p.bands(from, to, bandM)) {
+        val bands = p.bands(from, to, bandM)
+        // the area under the line from a to b (a < b), as one closed path
+        fun area(a: Double, b: Double): Path {
+            val path = Path(); path.moveTo(x(a), bottom)
+            var dd = a
+            while (dd < b) { path.lineTo(x(dd), y(p.elevationAt(dd))); dd += p.stepM / 2 }
+            path.lineTo(x(b), y(p.elevationAt(b))); path.lineTo(x(b), bottom); path.close()
+            return path
+        }
+        if (state.smooth && bands.size >= 2) {
+            // one fill whose colour runs through every band's grade, from band middle to band middle
+            val xs = FloatArray(bands.size) { i -> ((x((bands[i].fromM + bands[i].toM) / 2) - left) / (right - left)).coerceIn(0f, 1f) }
+            for (i in 1 until xs.size) if (xs[i] < xs[i - 1]) xs[i] = xs[i - 1]
+            val cs = IntArray(bands.size) { i -> smoothColorOf(bands[i].gradePct) }
+            fill.shader = LinearGradient(left, 0f, right, 0f, cs, xs, Shader.TileMode.CLAMP)
+            c.drawPath(area(from, to), fill)
+            fill.shader = null
+            if (pos != null && pos > from) { fill.color = DONE; c.drawPath(area(from, minOf(pos, to)), fill) }
+        } else for (b in bands) {
             fill.color = if (pos != null && b.toM <= pos) DONE else colorOf(b.shade)
             val path = Path()
             path.moveTo(x(b.fromM), bottom)
@@ -155,7 +196,7 @@ object ProfileRenderer {
             val ry = y(p.elevationAt(pos))
             c.drawCircle(rx, ry, r + 1.5f * px, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE })
             c.drawCircle(rx, ry, r, dot)
-            state.gradePct?.let { g -> drawGrade(c, g, rx, ry, left, right, top, bottom, lineH, px) }
+            state.gradePct?.let { g -> drawGrade(c, g, rx, ry, left, right, top, bottom, lineH, px, state.smooth) }
         }
         return bmp
     }

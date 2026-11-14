@@ -10,6 +10,10 @@ data class ProfileState(
     val climb: ClimbSpan? = null,
     /** Auto zoom on a climb: 0 = the whole climb, else the km shown (10, 5 or 2 km, at most to the top). */
     val climbSpanM: Double = 0.0,
+    /** Colours: false = one colour per gradient class (bands), true = a continuous blend along the grade. */
+    val smooth: Boolean = false,
+    /** Only the graph and the instant grade on the dot: no top line, the profile takes the whole cell. */
+    val graphOnly: Boolean = false,
     /** Not recording (paused, or before the start): a tap opens the climbs popup instead of switching the zoom. */
     val paused: Boolean = false,
     /** The Karoo's own instant grade (%), as its Grade field shows it; null = no value. */

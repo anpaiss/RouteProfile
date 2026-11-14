@@ -45,6 +45,8 @@ Open **RouteProfile** from the Karoo's app list.
 
 - **Auto zoom on climbs**: on by default.
 - **Zoom in before the climb**: 2 km, 1 km (default) or 500 m. On a route that goes up and down, 500 m keeps the field from staying zoomed between one climb and the next.
+- **Smooth colours**: off by default (one colour per gradient class, in bands); on, the colour blends along the grade.
+- **Graph only**: off by default; on, no top line (view, km and climb to go), the graph takes the whole field and the instant grade stays on the dot.
 - **On a climb, show**: the whole climb (default), or only the next 10, 5 or 2 km of it, never past the top. Useful on a long pass: a 30 km climb across the whole cell shows little. A climb shorter than the choice is shown whole.
 - **Zoom on these climbs**: one switch per climb category. The Karoo lists the climbs of a route but gives them no category, so RouteProfile gives them one by how much they climb (the Karoo's elevation gain of the climb, or length × grade when it has none). It is the usual length × average-grade score, which is 100 × the elevation gain:
 

@@ -103,6 +103,22 @@ class MainActivity : Activity() {
             RouteProfileExtension.instance?.settingsChanged()
         }
 
+        col.addView(text("Look", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
+        col.addView(Switch(this).apply {
+            text = "Smooth colours"; textSize = 16f
+            isChecked = Prefs.smooth(this@MainActivity)
+            setPadding(dp(12), dp(6), 0, dp(6))
+            setOnCheckedChangeListener { _, on -> Prefs.setSmooth(this@MainActivity, on); RouteProfileExtension.instance?.settingsChanged() }
+        })
+        col.addView(text("Off: one colour per gradient class, in bands. On: the colour blends along the grade (orange turning red as it steepens).", 13f))
+        col.addView(Switch(this).apply {
+            text = "Graph only"; textSize = 16f
+            isChecked = Prefs.graphOnly(this@MainActivity)
+            setPadding(dp(12), dp(6), 0, dp(6))
+            setOnCheckedChangeListener { _, on -> Prefs.setGraphOnly(this@MainActivity, on); RouteProfileExtension.instance?.settingsChanged() }
+        })
+        col.addView(text("No top line (view, km and climb to go): the graph takes the whole field, the instant grade stays on the dot.", 13f))
+
         col.addView(text("Climbs popup", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
         col.addView(text("Before the start or with the ride paused, a tap on the field lists the route's climbs, coloured by category, the next one highlighted. " +
             "It closes with CLOSE or when the ride records again.", 13f))
@@ -130,6 +146,9 @@ class MainActivity : Activity() {
         preview("On the climb: what is left to the top", ProfileState.sample(Zoom.CLIMB, atM = 17_000.0), 478, 126)
         preview("On the long climb, auto zoom set to 2 km", ProfileState.sample(Zoom.CLIMB, atM = 5_000.0).let { it.copy(climb = it.climbs[0], climbSpanM = 2_000.0) }, 478, 126)
         preview("A tap with no climb near: next 10 km", ProfileState.sample(Zoom.AHEAD_10), 478, 126)
+        preview("Smooth colours", ProfileState.sample(Zoom.WHOLE).copy(smooth = true), 478, 126)
+        preview("Graph only", ProfileState.sample(Zoom.WHOLE).copy(graphOnly = true), 478, 126)
+        preview("Graph only, smooth colours", ProfileState.sample(Zoom.WHOLE).copy(graphOnly = true, smooth = true), 478, 126)
         preview("Downhill: the instant grade in blue, with its sign", ProfileState.sample(Zoom.WHOLE, atM = 26_000.0).copy(gradePct = -8.0), 478, 126)
         preview("Taller cell (478×212)", ProfileState.sample(Zoom.WHOLE), 478, 212)
         preview("Half cell (238×126)", ProfileState.sample(Zoom.WHOLE), 238, 126)

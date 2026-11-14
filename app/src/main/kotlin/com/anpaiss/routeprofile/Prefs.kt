@@ -8,6 +8,8 @@ object Prefs {
     private const val AUTO_ZOOM = "auto_zoom"
     private const val AUTO_SPAN_M = "auto_span_m"
     private const val AUTO_NEAR_M = "auto_near_m"
+    private const val SMOOTH = "smooth_colours"
+    private const val GRAPH_ONLY = "graph_only"
 
     private fun sp(c: Context) = c.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
@@ -24,6 +26,16 @@ object Prefs {
     fun autoNearM(c: Context): Double = sp(c).getFloat(AUTO_NEAR_M, ZoomLogic.CLIMB_NEAR_M.toFloat()).toDouble()
 
     fun setAutoNearM(c: Context, m: Double) { sp(c).edit().putFloat(AUTO_NEAR_M, m.toFloat()).apply() }
+
+    /** Smooth colours instead of bands (default off: bands). */
+    fun smooth(c: Context): Boolean = sp(c).getBoolean(SMOOTH, false)
+
+    fun setSmooth(c: Context, on: Boolean) { sp(c).edit().putBoolean(SMOOTH, on).apply() }
+
+    /** Graph only, no top line (default off). */
+    fun graphOnly(c: Context): Boolean = sp(c).getBoolean(GRAPH_ONLY, false)
+
+    fun setGraphOnly(c: Context, on: Boolean) { sp(c).edit().putBoolean(GRAPH_ONLY, on).apply() }
 
     /** Uncategorized climbs (an overpass, a short ramp) off by default, all the others on. */
     fun zoomOn(c: Context, cat: ClimbCategory): Boolean =
