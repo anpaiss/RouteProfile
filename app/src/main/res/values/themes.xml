@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The climbs list: translucent, so the Karoo's ride screen stays started underneath (only paused).
+         Opaque, it was stopped and before the start the Karoo reloaded the profile on CLOSE ("loading profile"). -->
+    <style name="ClimbsPopup" parent="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>

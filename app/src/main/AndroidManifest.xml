@@ -26,7 +26,7 @@
         <!-- Tap on the field while not recording: the route's climbs -->
         <activity
             android:name=".ClimbsActivity"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
+            android:theme="@style/ClimbsPopup"
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:exported="false" />
