@@ -27,6 +27,8 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         /** BetterETA's "Time to Top" stream: seconds, and the metres to the top under [TOP_M_FIELD]. */
         const val BETTER_ETA_TOP = "TYPE_EXT::better-eta::eta-time-to-top"
         const val TOP_M_FIELD = "top_m"
+        /** Above this (about 4 km/h) the rider is moving. */
+        const val MOVING_MS = 1.1
     }
 
     private lateinit var karoo: KarooSystemService
@@ -64,10 +66,23 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
     private val _rideState = MutableStateFlow<RideState>(RideState.Idle)
     val rideState: StateFlow<RideState> get() = _rideState
 
+    @Volatile private var recording = false
+    @Volatile private var speedMs = 0.0
+
+    /**
+     * "Paused" for the field = really standing: not recording AND not moving. Moving without recording
+     * (KarooSim before the start, 14/11/2026: the tap opened the climbs list) taps through the zoom.
+     */
+    private fun updatePaused() {
+        val p = !recording && speedMs < MOVING_MS
+        if (p != _state.value.paused) _state.value = _state.value.copy(paused = p)
+    }
+
     private fun subscribe() {
         consumers += karoo.addConsumer(RideState.Params, { _ -> }, {}) { r: RideState ->
             _rideState.value = r
-            _state.value = _state.value.copy(paused = r !is RideState.Recording)
+            recording = r is RideState.Recording
+            updatePaused()
         }
         consumers += karoo.addConsumer(OnNavigationState.Params, { _ -> }, {}) { e: OnNavigationState -> onNav(e.state) }
         consumers += karoo.addConsumer(
@@ -88,6 +103,13 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
             // the Karoo passes on only the main value of another extension's stream (14/11/2026: "top_m" never
             // arrived), so the metres to the top are a check when present, not a requirement
             _state.value = _state.value.copy(betterTop = if (sec != null && sec >= 0) sec to (m ?: -1.0) else null)
+        }
+        // speed: moving without recording (a ride not started yet, or KarooSim) still counts as riding for the tap
+        consumers += karoo.addConsumer(
+            OnStreamState.StartStreaming(DataType.Type.SPEED), { _ -> }, {}
+        ) { e: OnStreamState ->
+            speedMs = (e.state as? StreamState.Streaming)?.dataPoint?.values?.get(DataType.Field.SPEED) ?: 0.0
+            updatePaused()
         }
         // the Karoo's instant grade, the value of its native Grade field (already smoothed by the Karoo)
         consumers += karoo.addConsumer(
