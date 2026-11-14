@@ -12,4 +12,32 @@
         graphical="true"
         icon="@drawable/ic_route_profile" />
 
+    <DataType
+        typeId="to-climb"
+        displayName="@string/f_to_climb_name"
+        description="@string/f_to_climb_desc"
+        graphical="true"
+        icon="@drawable/ic_route_profile" />
+
+    <DataType
+        typeId="to-top"
+        displayName="@string/f_to_top_name"
+        description="@string/f_to_top_desc"
+        graphical="true"
+        icon="@drawable/ic_route_profile" />
+
+    <DataType
+        typeId="up-to-top"
+        displayName="@string/f_up_to_top_name"
+        description="@string/f_up_to_top_desc"
+        graphical="true"
+        icon="@drawable/ic_route_profile" />
+
+    <DataType
+        typeId="grade-to-top"
+        displayName="@string/f_grade_to_top_name"
+        description="@string/f_grade_to_top_desc"
+        graphical="true"
+        icon="@drawable/ic_route_profile" />
+
 </ExtensionInfo>

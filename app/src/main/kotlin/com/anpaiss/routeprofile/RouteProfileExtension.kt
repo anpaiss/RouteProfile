@@ -39,7 +39,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
     @Volatile private var manual: Zoom? = null
     @Volatile private var lastAuto: Zoom = Zoom.WHOLE
 
-    override val types by lazy { listOf(ProfileDataType(extension, state)) }
+    override val types by lazy { listOf(ProfileDataType(extension, state)) + ClimbFieldDataType.all(extension, state) }
 
     override fun onCreate() {
         super.onCreate()
@@ -146,7 +146,8 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         val m = manual?.let { if (it == Zoom.CLIMB && climb == null) Zoom.WHOLE else it }
         // the 10/5/2 km choice applies to the automatic climb view; a tapped CLIMB shows the whole climb
         _state.value = s.copy(posM = pos, zoom = m ?: auto, climb = climb, climbSpanM = if (m == null) Prefs.autoSpanM(this) else 0.0,
-            smooth = Prefs.smooth(this), graphOnly = Prefs.graphOnly(this))
+            smooth = Prefs.smooth(this), graphOnly = Prefs.graphOnly(this),
+            fields = ClimbFields.of(s.profile, s.climbs, pos, Prefs.zoomCategories(this)))
     }
 
     private fun total(s: ProfileState) = s.profile?.totalM ?: 0.0

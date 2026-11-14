@@ -53,6 +53,34 @@ object InstantGrade {
     fun shade(gradePct: Double): Shade = Profile.shadeOf(gradePct)
 }
 
+/**
+ * The single climb fields (and BigFields): distance to the start of the next climb not yet begun,
+ * and distance, ascent and average grade from the rider to the top of the climb under the rider
+ * (or, between climbs, of the next one). Null = no such climb ahead.
+ */
+data class ClimbFields(
+    val toStartM: Double? = null,
+    val toTopM: Double? = null,
+    val upToTopM: Double? = null,
+    val gradeToTopPct: Double? = null,
+) {
+    companion object {
+        /** Only climbs of the [enabled] categories (the same as the auto zoom). Before the first position: from the route start. */
+        fun of(profile: Profile?, climbs: List<ClimbSpan>, posM: Double?, enabled: Set<ClimbCategory>): ClimbFields {
+            if (profile == null) return ClimbFields()
+            val pos = posM ?: 0.0
+            val ahead = climbs.filter { it.category in enabled && it.endM > pos }.sortedBy { it.startM }
+            val next = ahead.firstOrNull { it.startM > pos }
+            val top = ahead.firstOrNull() ?: return ClimbFields(toStartM = next?.let { it.startM - pos })
+            val toTop = top.endM - pos
+            val grade = if (pos < top.startM) {
+                if (top.gradePct > 0) top.gradePct else top.ascentM / top.lengthM * 100.0
+            } else (profile.elevationAt(top.endM) - profile.elevationAt(pos)) / toTop * 100.0
+            return ClimbFields(next?.let { it.startM - pos }, toTop, profile.ascentBetween(pos, top.endM), grade)
+        }
+    }
+}
+
 /** The numbers of the CLIMB view: distance, ascent and average grade (of what is left, once on it). */
 data class ClimbNumbers(val distanceM: Double, val ascentM: Double, val gradePct: Double, val onClimb: Boolean) {
     companion object {

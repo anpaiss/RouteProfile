@@ -14,6 +14,8 @@ data class ProfileState(
     val smooth: Boolean = false,
     /** Only the graph and the instant grade on the dot: no top line, the profile takes the whole cell. */
     val graphOnly: Boolean = false,
+    /** The single climb fields: to the next climb, to the top, ascent and grade to the top. */
+    val fields: ClimbFields = ClimbFields(),
     /** Not recording (paused, or before the start): a tap opens the climbs popup instead of switching the zoom. */
     val paused: Boolean = false,
     /** The Karoo's own instant grade (%), as its Grade field shows it; null = no value. */

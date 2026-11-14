@@ -207,6 +207,35 @@ class ProfileTest {
         assertEquals(Zoom.CLIMB, ZoomLogic.auto(4_600.0, climbs, nearM = 500.0))
     }
 
+    @Test fun `climb fields between, on and after the climbs`() {
+        // flat 2 km, 4 km at 8 % (320 m), flat 2 km, 2 km at 8 % (160 m), flat
+        val pts = ArrayList<Pair<Double, Double>>()
+        var e = 500.0
+        for (i in 0..120) {
+            val m = i * 100.0
+            if (m > 2_000 && m <= 6_000 || m > 8_000 && m <= 10_000) e += 8.0
+            pts.add(m to e)
+        }
+        val p = Profile.of(pts)
+        val climbs = listOf(ClimbSpan(2_000.0, 4_000.0, 8.0, 320.0), ClimbSpan(8_000.0, 2_000.0, 8.0, 160.0))
+        val all = ClimbCategory.entries.toSet()
+        // before the first climb: 1 km to its start, 5 km to its top, the whole climb's grade
+        val before = ClimbFields.of(p, climbs, 1_000.0, all)
+        assertEquals(1_000.0, before.toStartM!!, 1e-6)
+        assertEquals(5_000.0, before.toTopM!!, 1e-6)
+        assertEquals(8.0, before.gradeToTopPct!!, 1e-6)
+        // on the first climb at km 4: the next climb is 4 km away, the top 2 km
+        val on = ClimbFields.of(p, climbs, 4_000.0, all)
+        assertEquals(4_000.0, on.toStartM!!, 1e-6)
+        assertEquals(2_000.0, on.toTopM!!, 1e-6)
+        assertEquals(160.0, on.upToTopM!!, 15.0)
+        // after the last climb: nothing ahead
+        val after = ClimbFields.of(p, climbs, 11_000.0, all)
+        assertNull(after.toStartM); assertNull(after.toTopM)
+        // no route: nothing
+        assertNull(ClimbFields.of(null, climbs, 1_000.0, all).toTopM)
+    }
+
     @Test fun `active climb is the nearest enabled one`() {
         val climbs = listOf(ClimbSpan(5_000.0, 300.0, 6.0), ClimbSpan(6_000.0, 3_000.0, 8.0))
         val defaults = ClimbCategory.entries.toSet() - ClimbCategory.UNCATEGORIZED

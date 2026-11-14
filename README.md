@@ -43,6 +43,7 @@ It is not on the Hammerhead app store, but once installed it appears in the Karo
 
 Open **RouteProfile** from the Karoo's app list.
 
+- **Single climb fields**, drawn like the Karoo's own fields, for any data page: **To climb** (distance to the start of the next climb), **To top** (distance to the top of the climb you are on, or of the next one), **Up to top** (ascent still to do), **Grade to top** (average grade from here to the top). They count the climbs of the categories switched on for the auto zoom, and BigFields shows them in large digits.
 - **Auto zoom on climbs**: on by default.
 - **Zoom in before the climb**: 2 km, 1 km (default) or 500 m. On a route that goes up and down, 500 m keeps the field from staying zoomed between one climb and the next.
 - **Smooth colours**: off by default (one colour per gradient class, in bands); on, the colour blends along the grade.
