@@ -44,8 +44,25 @@ class MainActivity : Activity() {
             }
         }
         col.addView(sw)
-        col.addView(text("On: when a climb starts within 2 km, and while you are on it, the field zooms on that climb, then shows the whole route again. " +
+        col.addView(text("On: when a climb is near, and while you are on it, the field zooms on that climb, then shows the whole route again. " +
             "A tap always switches; the automatic choice takes over again at the next climb.", 13f))
+
+        col.addView(text("Zoom in before the climb", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
+        val nears = listOf(2_000.0 to "2 km", 1_000.0 to "1 km", 500.0 to "500 m")
+        val nearGroup = RadioGroup(this).apply { orientation = RadioGroup.VERTICAL; setPadding(dp(12), 0, 0, 0) }
+        nears.forEachIndexed { i, (m, label) ->
+            nearGroup.addView(RadioButton(this).apply {
+                id = 200 + i; text = label; textSize = 15f
+                isChecked = Prefs.autoNearM(this@MainActivity) == m
+                isEnabled = sw.isChecked
+            })
+        }
+        nearGroup.setOnCheckedChangeListener { _, id ->
+            Prefs.setAutoNearM(this@MainActivity, nears[id - 200].first)
+            RouteProfileExtension.instance?.settingsChanged()
+        }
+        col.addView(nearGroup)
+        col.addView(text("On a route that goes up and down, 500 m keeps the field from staying zoomed between one climb and the next.", 13f))
 
         col.addView(text("On a climb, show", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
         val spans = listOf(0.0 to "Whole climb", 10_000.0 to "10 km", 5_000.0 to "5 km", 2_000.0 to "2 km")
@@ -82,6 +99,7 @@ class MainActivity : Activity() {
             Prefs.setAutoZoom(this@MainActivity, on)
             catSwitches.forEach { it.isEnabled = on }
             for (i in 0 until spanGroup.childCount) spanGroup.getChildAt(i).isEnabled = on
+            for (i in 0 until nearGroup.childCount) nearGroup.getChildAt(i).isEnabled = on
             RouteProfileExtension.instance?.settingsChanged()
         }
 

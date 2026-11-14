@@ -7,6 +7,7 @@ object Prefs {
     private const val FILE = "routeprofile"
     private const val AUTO_ZOOM = "auto_zoom"
     private const val AUTO_SPAN_M = "auto_span_m"
+    private const val AUTO_NEAR_M = "auto_near_m"
 
     private fun sp(c: Context) = c.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
@@ -18,6 +19,11 @@ object Prefs {
     fun autoSpanM(c: Context): Double = sp(c).getFloat(AUTO_SPAN_M, 0f).toDouble()
 
     fun setAutoSpanM(c: Context, m: Double) { sp(c).edit().putFloat(AUTO_SPAN_M, m.toFloat()).apply() }
+
+    /** How far before a climb the auto zoom starts: 2 km, 1 km (default) or 500 m. */
+    fun autoNearM(c: Context): Double = sp(c).getFloat(AUTO_NEAR_M, ZoomLogic.CLIMB_NEAR_M.toFloat()).toDouble()
+
+    fun setAutoNearM(c: Context, m: Double) { sp(c).edit().putFloat(AUTO_NEAR_M, m.toFloat()).apply() }
 
     /** Uncategorized climbs (an overpass, a short ramp) off by default, all the others on. */
     fun zoomOn(c: Context, cat: ClimbCategory): Boolean =

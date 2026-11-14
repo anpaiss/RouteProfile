@@ -139,7 +139,7 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         val s = _state.value
         val pos = karooPosM ?: gpsPosM
         // the climb near or under the rider, among the categories switched on in the app
-        val climb = ZoomLogic.activeClimb(pos, s.climbs, Prefs.zoomCategories(this))
+        val climb = ZoomLogic.activeClimb(pos, s.climbs, Prefs.zoomCategories(this), Prefs.autoNearM(this))
         val auto = if (Prefs.autoZoom(this) && climb != null) Zoom.CLIMB else Zoom.WHOLE
         if (auto != lastAuto) { manual = null; lastAuto = auto }
         // a manual CLIMB with no climb near any more goes back to the whole route

@@ -194,22 +194,24 @@ object ZoomLogic {
         val i = usable.indexOf(current)
         return if (i < 0) Zoom.WHOLE else usable[(i + 1) % usable.size]
     }
-    /** Auto-zoom: a climb that starts within this distance, or one we are on. */
-    const val CLIMB_NEAR_M = 2_000.0
+    /** Auto-zoom: a climb that starts within this distance, or one we are on (default; the app offers 2 km, 1 km, 500 m). */
+    const val CLIMB_NEAR_M = 1_000.0
     /** Margin on each side of a fitted climb: 3 % of its length, at least 50 m. */
     const val CLIMB_MARGIN = 0.03
     const val CLIMB_MARGIN_MIN_M = 50.0
 
-    /** The climb near (within [CLIMB_NEAR_M] of its start) or under the rider, among the [enabled] categories. */
-    fun activeClimb(posM: Double?, climbs: List<ClimbSpan>, enabled: Set<ClimbCategory> = ClimbCategory.entries.toSet()): ClimbSpan? {
+    /** The climb near (within [nearM] of its start) or under the rider, among the [enabled] categories. */
+    fun activeClimb(posM: Double?, climbs: List<ClimbSpan>, enabled: Set<ClimbCategory> = ClimbCategory.entries.toSet(),
+                    nearM: Double = CLIMB_NEAR_M): ClimbSpan? {
         if (posM == null) return null
-        return climbs.filter { it.category in enabled && posM >= it.startM - CLIMB_NEAR_M && posM <= it.endM }
+        return climbs.filter { it.category in enabled && posM >= it.startM - nearM && posM <= it.endM }
             .minByOrNull { it.startM }
     }
 
     /** Zoom on a climb near or under the rider whose category is in [enabled]. */
-    fun auto(posM: Double?, climbs: List<ClimbSpan>, enabled: Set<ClimbCategory> = ClimbCategory.entries.toSet()): Zoom =
-        if (activeClimb(posM, climbs, enabled) != null) Zoom.CLIMB else Zoom.WHOLE
+    fun auto(posM: Double?, climbs: List<ClimbSpan>, enabled: Set<ClimbCategory> = ClimbCategory.entries.toSet(),
+             nearM: Double = CLIMB_NEAR_M): Zoom =
+        if (activeClimb(posM, climbs, enabled, nearM) != null) Zoom.CLIMB else Zoom.WHOLE
 
     /**
      * Distance window [from, to] shown for [zoom]. CLIMB fits [climb] to the cell, from its start
