@@ -85,7 +85,9 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
             val v = (e.state as? StreamState.Streaming)?.dataPoint?.values
             val sec = v?.get(DataType.Field.SINGLE)
             val m = v?.get(TOP_M_FIELD)
-            _state.value = _state.value.copy(betterTop = if (sec != null && m != null && sec >= 0 && m >= 0) sec to m else null)
+            // the Karoo passes on only the main value of another extension's stream (14/11/2026: "top_m" never
+            // arrived), so the metres to the top are a check when present, not a requirement
+            _state.value = _state.value.copy(betterTop = if (sec != null && sec >= 0) sec to (m ?: -1.0) else null)
         }
         // the Karoo's instant grade, the value of its native Grade field (already smoothed by the Karoo)
         consumers += karoo.addConsumer(

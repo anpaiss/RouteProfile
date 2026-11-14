@@ -244,6 +244,8 @@ class ProfileTest {
         assertEquals("1:05", s.copy(betterTop = 3_900.0 to 2_950.0).climbTimeText())
         assertNull(s.copy(betterTop = 1_430.0 to 8_000.0).climbTimeText())             // another top
         assertNull(s.copy(zoom = Zoom.WHOLE, betterTop = 1_430.0 to 3_000.0).climbTimeText())
+        // the metres to the top did not come through (the Karoo drops extra keys): the time is shown
+        assertEquals("0:24", s.copy(betterTop = 1_430.0 to -1.0).climbTimeText())
     }
 
     @Test fun `active climb is the nearest enabled one`() {

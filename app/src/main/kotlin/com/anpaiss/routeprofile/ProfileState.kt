@@ -32,7 +32,7 @@ data class ProfileState(
         val c = climb ?: return null
         if (sec < 0 || zoom != Zoom.CLIMB) return null
         val ownTopM = c.endM - (posM ?: 0.0)
-        if (kotlin.math.abs(ownTopM - topM) > TOP_MATCH_M) return null
+        if (topM >= 0 && kotlin.math.abs(ownTopM - topM) > TOP_MATCH_M) return null
         val min = Math.round(sec / 60.0)
         return "%d:%02d".format(min / 60, min % 60)
     }
