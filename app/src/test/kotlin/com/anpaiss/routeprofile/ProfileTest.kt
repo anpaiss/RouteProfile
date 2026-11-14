@@ -236,6 +236,16 @@ class ProfileTest {
         assertNull(ClimbFields.of(null, climbs, 1_000.0, all).toTopM)
     }
 
+    @Test fun `BetterETA time on the CLIMB line only for the same top`() {
+        val climb = ClimbSpan(2_000.0, 4_000.0, 8.0, 320.0)   // top at km 6
+        val s = ProfileState(posM = 3_000.0, zoom = Zoom.CLIMB, climb = climb)
+        assertNull(s.climbTimeText())                                                  // no BetterETA
+        assertEquals("0:24", s.copy(betterTop = 1_430.0 to 3_100.0).climbTimeText())   // same top
+        assertEquals("1:05", s.copy(betterTop = 3_900.0 to 2_950.0).climbTimeText())
+        assertNull(s.copy(betterTop = 1_430.0 to 8_000.0).climbTimeText())             // another top
+        assertNull(s.copy(zoom = Zoom.WHOLE, betterTop = 1_430.0 to 3_000.0).climbTimeText())
+    }
+
     @Test fun `active climb is the nearest enabled one`() {
         val climbs = listOf(ClimbSpan(5_000.0, 300.0, 6.0), ClimbSpan(6_000.0, 3_000.0, 8.0))
         val defaults = ClimbCategory.entries.toSet() - ClimbCategory.UNCATEGORIZED

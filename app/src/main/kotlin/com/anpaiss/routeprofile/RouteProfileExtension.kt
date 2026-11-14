@@ -23,6 +23,10 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
     companion object {
         @Volatile var instance: RouteProfileExtension? = null
             private set
+
+        /** BetterETA's "Time to Top" stream: seconds, and the metres to the top under [TOP_M_FIELD]. */
+        const val BETTER_ETA_TOP = "TYPE_EXT::better-eta::eta-time-to-top"
+        const val TOP_M_FIELD = "top_m"
     }
 
     private lateinit var karoo: KarooSystemService
@@ -74,6 +78,15 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
             karooPosM = if (v != null && len != null && v >= 0) (len - v).coerceIn(0.0, len) else null
             publish()
         }
+        // BetterETA's time to the next top, when it is installed (its own model, never the Karoo's times)
+        consumers += karoo.addConsumer(
+            OnStreamState.StartStreaming(BETTER_ETA_TOP), { _ -> }, {}
+        ) { e: OnStreamState ->
+            val v = (e.state as? StreamState.Streaming)?.dataPoint?.values
+            val sec = v?.get(DataType.Field.SINGLE)
+            val m = v?.get(TOP_M_FIELD)
+            _state.value = _state.value.copy(betterTop = if (sec != null && m != null && sec >= 0 && m >= 0) sec to m else null)
+        }
         // the Karoo's instant grade, the value of its native Grade field (already smoothed by the Karoo)
         consumers += karoo.addConsumer(
             OnStreamState.StartStreaming(DataType.Type.ELEVATION_GRADE), { _ -> }, {}
@@ -104,7 +117,8 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         }
         val key = "${line.hashCode()}/${elev.hashCode()}/$reversed"
         if (key == routeKey) {
-            _state.value = _state.value.copy(climbs = climbSpans)
+            // the Karoo's climbs when it sends any; none (imported routes, always so far): ours stay
+            if (climbSpans.isNotEmpty()) _state.value = _state.value.copy(climbs = climbSpans)
             return
         }
         routeKey = key
@@ -119,7 +133,9 @@ class RouteProfileExtension : KarooExtension("routeprofile", BuildConfig.VERSION
         routeLengthM = length ?: profile?.totalM
         projection = if (pts.size >= 2) Projection(pts, routeLengthM) else null
         karooPosM = null; gpsPosM = null; manual = null
-        _state.value = ProfileState(profile = profile, climbs = climbSpans, paused = _state.value.paused, gradePct = _state.value.gradePct)
+        // The Karoo sends no climbs for imported routes: find them on the route's own elevation
+        val routeClimbs = climbSpans.ifEmpty { profile?.let { ClimbDetector.find(it.ele, it.stepM) }.orEmpty() }
+        _state.value = ProfileState(profile = profile, climbs = routeClimbs, paused = _state.value.paused, gradePct = _state.value.gradePct)
         publish()
     }
 

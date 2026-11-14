@@ -16,15 +16,34 @@ data class ProfileState(
     val graphOnly: Boolean = false,
     /** The single climb fields: to the next climb, to the top, ascent and grade to the top. */
     val fields: ClimbFields = ClimbFields(),
+    /**
+     * BetterETA's time to the next top (seconds) and the metres to that top, when BetterETA is installed;
+     * null without it. Never the Karoo's own times: always wrong (Andrea, 14/11/2026).
+     */
+    val betterTop: Pair<Double, Double>? = null,
     /** Not recording (paused, or before the start): a tap opens the climbs popup instead of switching the zoom. */
     val paused: Boolean = false,
     /** The Karoo's own instant grade (%), as its Grade field shows it; null = no value. */
     val gradePct: Double? = null,
 ) {
+    /** "0:24" for the CLIMB line when BetterETA's top is this climb's top (within [TOP_MATCH_M]); else null. */
+    fun climbTimeText(): String? {
+        val (sec, topM) = betterTop ?: return null
+        val c = climb ?: return null
+        if (sec < 0 || zoom != Zoom.CLIMB) return null
+        val ownTopM = c.endM - (posM ?: 0.0)
+        if (kotlin.math.abs(ownTopM - topM) > TOP_MATCH_M) return null
+        val min = Math.round(sec / 60.0)
+        return "%d:%02d".format(min / 60, min % 60)
+    }
+
     val remainingM: Double? get() = profile?.let { p -> posM?.let { (p.totalM - it).coerceAtLeast(0.0) } ?: p.totalM }
     val remainingAscentM: Double? get() = profile?.ascentFrom(posM ?: 0.0)
 
     companion object {
+        /** BetterETA and RouteProfile find the same climbs; a top this close is the same top. */
+        const val TOP_MATCH_M = 300.0
+
         /**
          * Sample for the profile editor and the FIELD PREVIEW: a 40 km loop like the
          * Barricata (long climb, short climb on the top, long descent, flat back), rider at km 14.5.

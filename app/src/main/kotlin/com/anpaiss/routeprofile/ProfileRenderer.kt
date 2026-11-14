@@ -103,7 +103,8 @@ object ProfileRenderer {
         val numbers = if (state.zoom == Zoom.CLIMB && climb != null) {
             // on the climb: what is left to the top; approaching: the whole climb
             val n = ClimbNumbers.of(p, climb, state.posM)
-            String.format(Locale.US, "%.1f km · +%d m · %d %%", n.distanceM / 1000.0, Math.round(n.ascentM), Math.round(n.gradePct))
+            String.format(Locale.US, "%.1f km · +%d m · %d %%", n.distanceM / 1000.0, Math.round(n.ascentM), Math.round(n.gradePct)) +
+                (state.climbTimeText()?.let { " · $it" } ?: "")
         } else String.format(Locale.US, "%.1f km · +%d m",
             (state.remainingM ?: 0.0) / 1000.0, Math.round(state.remainingAscentM ?: 0.0))
         text.typeface = condensedBold; text.color = Color.WHITE; text.textSize = lineH * 0.92f
