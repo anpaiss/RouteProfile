@@ -44,6 +44,7 @@ It is not on the Hammerhead app store, but once installed it appears in the Karo
 Open **RouteProfile** from the Karoo's app list.
 
 - **Auto zoom on climbs**: on by default.
+- **On a climb, show**: the whole climb (default), or only the next 10, 5 or 2 km of it, never past the top. Useful on a long pass: a 30 km climb across the whole cell shows little. A climb shorter than the choice is shown whole.
 - **Zoom on these climbs**: one switch per climb category. The Karoo lists the climbs of a route but gives them no category, so RouteProfile gives them one by how much they climb (the Karoo's elevation gain of the climb, or length × grade when it has none). It is the usual length × average-grade score, which is 100 × the elevation gain:
 
   | Category | Climbs from | Example |

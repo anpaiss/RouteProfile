@@ -164,6 +164,20 @@ class ProfileTest {
         assertEquals(Zoom.WHOLE, ZoomLogic.auto(19_000.0, listOf(overpass, cat2), defaults - ClimbCategory.CAT2))
     }
 
+    @Test fun `auto zoom set to 10, 5 or 2 km on a climb, never past the top`() {
+        val climb = ClimbSpan(5_000.0, 15_000.0, 7.0)   // km 5 to 20, margin 450 m
+        // on the climb at km 8 with 5 km: 0.5 km behind, 4.5 km ahead
+        assertEquals(7_500.0 to 12_500.0, ZoomLogic.window(Zoom.CLIMB, 8_000.0, 40_000.0, climb, 5_000.0))
+        // 2 km from the top with 5 km: the window ends at the top (plus margin) and keeps its 5 km
+        assertEquals(15_450.0 to 20_450.0, ZoomLogic.window(Zoom.CLIMB, 18_000.0, 40_000.0, climb, 5_000.0))
+        // a 5 km climb with the auto zoom on 10 km: the whole climb, the longest view available
+        val short = ClimbSpan(5_000.0, 5_000.0, 7.0)
+        assertEquals(ZoomLogic.window(Zoom.CLIMB, 6_000.0, 40_000.0, short),
+            ZoomLogic.window(Zoom.CLIMB, 6_000.0, 40_000.0, short, 10_000.0))
+        // 0 = the whole climb, as before
+        assertEquals(4_550.0 to 20_450.0, ZoomLogic.window(Zoom.CLIMB, 8_000.0, 40_000.0, climb, 0.0))
+    }
+
     @Test fun `climb window fits a 2 km and a 15 km climb with a small margin`() {
         val short = ClimbSpan(20_000.0, 2_000.0, 8.0)
         // on the climb: start - 60 m to end + 60 m (3 % of 2 km)

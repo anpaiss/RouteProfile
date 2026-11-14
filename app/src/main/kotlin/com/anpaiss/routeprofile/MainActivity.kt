@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.TextView
@@ -42,8 +44,25 @@ class MainActivity : Activity() {
             }
         }
         col.addView(sw)
-        col.addView(text("On: when a climb starts within 2 km, and while you are on it, the field shows that climb across its whole width, then the whole route again. " +
+        col.addView(text("On: when a climb starts within 2 km, and while you are on it, the field zooms on that climb, then shows the whole route again. " +
             "A tap always switches; the automatic choice takes over again at the next climb.", 13f))
+
+        col.addView(text("On a climb, show", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
+        val spans = listOf(0.0 to "Whole climb", 10_000.0 to "10 km", 5_000.0 to "5 km", 2_000.0 to "2 km")
+        val spanGroup = RadioGroup(this).apply { orientation = RadioGroup.VERTICAL; setPadding(dp(12), 0, 0, 0) }
+        spans.forEachIndexed { i, (m, label) ->
+            spanGroup.addView(RadioButton(this).apply {
+                id = 100 + i; text = label; textSize = 15f
+                isChecked = Prefs.autoSpanM(this@MainActivity) == m
+                isEnabled = sw.isChecked
+            })
+        }
+        spanGroup.setOnCheckedChangeListener { _, id ->
+            Prefs.setAutoSpanM(this@MainActivity, spans[id - 100].first)
+            RouteProfileExtension.instance?.settingsChanged()
+        }
+        col.addView(spanGroup)
+        col.addView(text("10, 5 or 2 km: on a long climb (a 30 km pass) that much of the road ahead, never past the top. A climb shorter than that is shown whole.", 13f))
 
         col.addView(text("Zoom on these climbs", 15f, bold = true).apply { setPadding(0, dp(12), 0, dp(2)) })
         col.addView(text("A climb's category goes by how much it climbs.", 13f))
@@ -62,6 +81,7 @@ class MainActivity : Activity() {
         sw.setOnCheckedChangeListener { _, on ->
             Prefs.setAutoZoom(this@MainActivity, on)
             catSwitches.forEach { it.isEnabled = on }
+            for (i in 0 until spanGroup.childCount) spanGroup.getChildAt(i).isEnabled = on
             RouteProfileExtension.instance?.settingsChanged()
         }
 
@@ -90,6 +110,7 @@ class MainActivity : Activity() {
         preview("Map page, bottom row (478×126): whole route", ProfileState.sample(Zoom.WHOLE), 478, 126)
         preview("Auto zoom, approaching a climb: the whole climb fitted to the cell", ProfileState.sample(Zoom.CLIMB), 478, 126)
         preview("On the climb: what is left to the top", ProfileState.sample(Zoom.CLIMB, atM = 17_000.0), 478, 126)
+        preview("On the long climb, auto zoom set to 2 km", ProfileState.sample(Zoom.CLIMB, atM = 5_000.0).let { it.copy(climb = it.climbs[0], climbSpanM = 2_000.0) }, 478, 126)
         preview("A tap with no climb near: next 10 km", ProfileState.sample(Zoom.AHEAD_10), 478, 126)
         preview("Downhill: the instant grade in blue, with its sign", ProfileState.sample(Zoom.WHOLE, atM = 26_000.0).copy(gradePct = -8.0), 478, 126)
         preview("Taller cell (478×212)", ProfileState.sample(Zoom.WHOLE), 478, 212)

@@ -105,7 +105,7 @@ object ProfileRenderer {
         val top = pad + lineH + 3 * px
         val bottom = bmp.height - pad
         if (bottom - top < 8 * px) return bmp
-        val (from, to) = ZoomLogic.window(state.zoom, state.posM, p.totalM, state.climb)
+        val (from, to) = ZoomLogic.window(state.zoom, state.posM, p.totalM, state.climb, state.climbSpanM)
         val span = max(1.0, to - from)
         var lo = Double.MAX_VALUE; var hi = -Double.MAX_VALUE
         var m = from

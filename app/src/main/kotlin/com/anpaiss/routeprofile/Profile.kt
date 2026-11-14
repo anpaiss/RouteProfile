@@ -214,13 +214,20 @@ object ZoomLogic {
     /**
      * Distance window [from, to] shown for [zoom]. CLIMB fits [climb] to the cell, from its start
      * (or from the rider, while still approaching it) to its end, with a small margin.
+     * With [climbSpanM] > 0 (the auto zoom set to 10, 5 or 2 km) CLIMB shows that many km around the
+     * rider, never past the top: a climb shorter than that is shown whole.
      * Before the first position a window view shows the start of the route.
      */
-    fun window(zoom: Zoom, posM: Double?, totalM: Double, climb: ClimbSpan? = null): Pair<Double, Double> {
+    fun window(zoom: Zoom, posM: Double?, totalM: Double, climb: ClimbSpan? = null, climbSpanM: Double = 0.0): Pair<Double, Double> {
         if (zoom == Zoom.CLIMB && climb != null) {
             val margin = max(CLIMB_MARGIN_MIN_M, climb.lengthM * CLIMB_MARGIN)
             val start = if (posM != null && posM < climb.startM) posM else climb.startM
-            return max(0.0, start - margin) to min(totalM, climb.endM + margin)
+            val cf = max(0.0, start - margin)
+            val ct = min(totalM, climb.endM + margin)
+            if (climbSpanM <= 0.0 || posM == null || ct - cf <= climbSpanM) return cf to ct
+            val from = max(cf, posM - climbSpanM * BEHIND_SHARE)
+            val to = min(ct, from + climbSpanM)
+            return max(cf, to - climbSpanM) to to
         }
         val span = zoom.spanM
         if (span <= 0.0 || totalM <= span) return 0.0 to totalM
