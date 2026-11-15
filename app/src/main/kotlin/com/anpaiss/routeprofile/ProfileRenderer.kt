@@ -80,6 +80,49 @@ object ProfileRenderer {
         c.drawText(label, x, base, p)
     }
 
+    /**
+     * The instant grade again, big, in the empty dark space above the profile (a tall cell: a
+     * climb leaves the top left free, a descent the top right). The corner with more room wins,
+     * kept clear of the rider's line; with too little room (a low cell, a rolling profile) it is
+     * not drawn and the pill by the dot stays alone. [topOfProfile] gives the highest screen y of
+     * the profile under an x range.
+     */
+    private fun drawBigGrade(c: Canvas, g: Double, rx: Float, left: Float, right: Float, top: Float,
+                             px: Float, smooth: Boolean, topOfProfile: (Pair<Float, Float>) -> Float) {
+        val gap = 10 * px
+        val p = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = condensedBold; textAlign = Paint.Align.CENTER
+            color = if (smooth) smoothColorOf(g) else colorOf(InstantGrade.shade(g))
+        }
+        val label = InstantGrade.text(g).replace(" ", "")   // big: no space, more room for the digits
+        p.textSize = 100f
+        val widthPerSize = p.measureText(label) / 100f   // text width for a text size of 1
+        // candidate boxes: the two corners and the two sides of the rider's line, two widths each;
+        // never across the rider's line. The one that takes the biggest text wins.
+        var bestX = 0f; var bestW = 0f; var bestFree = 0f; var bestSize = 0f
+        val boxes = ArrayList<Pair<Float, Float>>()   // x0, width
+        for (frac in floatArrayOf(0.45f, 0.32f)) {
+            val bw = (right - left) * frac
+            for (x0 in floatArrayOf(left, right - bw, rx + gap, rx - gap - bw)) boxes += x0 to bw
+        }
+        // and all the room on either side of the rider's line, when narrower than that
+        boxes += (rx + gap) to (right - rx - gap)
+        boxes += left to (rx - gap - left)
+        for ((x0, bw) in boxes) {
+            if (bw <= 0f || x0 < left - 0.5f || x0 + bw > right + 0.5f) continue
+            if (rx > x0 - gap + 0.5f && rx < x0 + bw + gap - 0.5f) continue
+            val free = topOfProfile(x0 to x0 + bw) - top - 6 * px
+            val size = minOf(free * 0.9f, 90 * px, bw / widthPerSize)
+            if (size > bestSize) { bestX = x0; bestW = bw; bestFree = free; bestSize = size }
+        }
+        if (bestSize < 28 * px) return
+        p.textSize = bestSize
+        val x0 = bestX; val bw = bestW; val free = bestFree
+        // vertically centred in the free space (cap height ~0.72 of the text size)
+        val base = top + 3 * px + free / 2 + p.textSize * 0.36f
+        c.drawText(label, x0 + bw / 2, base, p)
+    }
+
     fun render(state: ProfileState, w: Int, h: Int, density: Float): Bitmap {
         val bmp = Bitmap.createBitmap(max(w, 40), max(h, 30), Bitmap.Config.ARGB_8888)
         val c = Canvas(bmp)
@@ -99,6 +142,11 @@ object ProfileRenderer {
         val lineH = (bmp.height * 0.24f).coerceIn(14 * px, 24 * px)
         val pad = 4 * px
         val climb = state.climb
+        // A low cell (the map page's bottom row) has no room for the big grade over the profile:
+        // there the instant grade sits in a coloured box at the left of the top line, instead of the
+        // view label and of the pill by the dot (Andrea 15/11, option B of the preview)
+        val small = !state.graphOnly && bmp.height - 2 * pad - lineH - 3 * px < 60 * px
+        val boxGrade = if (small && state.posM != null) state.gradePct else null
         if (!state.graphOnly) {
         val numbers = if (state.zoom == Zoom.CLIMB && climb != null) {
             // on the climb: what is left to the top; approaching: the whole climb
@@ -109,6 +157,23 @@ object ProfileRenderer {
             (state.remainingM ?: 0.0) / 1000.0, Math.round(state.remainingAscentM ?: 0.0))
         text.typeface = condensedBold; text.color = Color.WHITE; text.textSize = lineH * 0.92f
         text.textAlign = Paint.Align.RIGHT
+        // never cut on the left: a long line (climb numbers + time to the top) shrinks to fit
+        var boxW = 0f
+        if (boxGrade != null) {
+            val gp = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = condensedBold; textSize = lineH * 0.92f; textAlign = Paint.Align.CENTER }
+            val gl = InstantGrade.text(boxGrade)
+            boxW = gp.measureText(gl) + 10 * px
+            val col = if (state.smooth) smoothColorOf(boxGrade) else colorOf(InstantGrade.shade(boxGrade))
+            val bgp = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = col }
+            c.drawRoundRect(RectF(2 * pad, pad, 2 * pad + boxW, pad + lineH), 4 * px, 4 * px, bgp)
+            // dark text on the light colours (green, yellow, orange), white on red, dark red and blue
+            val lum = 0.299 * ((col shr 16) and 0xFF) + 0.587 * ((col shr 8) and 0xFF) + 0.114 * (col and 0xFF)
+            gp.color = if (lum > 140) Color.BLACK else Color.WHITE
+            c.drawText(gl, 2 * pad + boxW / 2, pad + lineH * 0.82f, gp)
+            boxW += 8 * px
+        }
+        val maxW = bmp.width - 4 * pad - boxW
+        while (text.textSize > 8 * px && text.measureText(numbers) > maxW) text.textSize -= 0.5f * px
         val base = pad + lineH * 0.82f
         c.drawText(numbers, bmp.width - 2 * pad, base, text)
         val numbersW = text.measureText(numbers)
@@ -120,7 +185,7 @@ object ProfileRenderer {
             else -> state.zoom.label
         }
         // narrow cell: the numbers matter more than the label
-        if (2 * pad + text.measureText(label) + 8 * px + numbersW <= bmp.width - 2 * pad) c.drawText(label, 2 * pad, base, text)
+        if (boxGrade == null && 2 * pad + text.measureText(label) + 8 * px + numbersW <= bmp.width - 2 * pad) c.drawText(label, 2 * pad, base, text)
         }
 
         // Profile area: below the top line, or the whole cell when the graph is alone
@@ -188,6 +253,17 @@ object ProfileRenderer {
         while (d < to) { d = minOf(to, d + p.stepM / 2); outline.lineTo(x(d), y(p.elevationAt(d))) }
         c.drawPath(outline, line)
 
+        if (!small && pos != null && pos in from..to) state.gradePct?.let { g ->
+            drawBigGrade(c, g, x(pos), left, right, top, px, state.smooth) { xs ->
+                // highest point of the profile under the screen x range [xs.first, xs.second]
+                val a = from + (xs.first - left) / (right - left) * span
+                val b = from + (xs.second - left) / (right - left) * span
+                var e = -Double.MAX_VALUE; var dd = a
+                while (dd <= b) { e = maxOf(e, p.elevationAt(dd)); dd += p.stepM / 2 }
+                y(maxOf(e, p.elevationAt(b)))
+            }
+        }
+
         if (pos != null && pos in from..to) {
             val rx = x(pos)
             line.strokeWidth = 1.3f * px
@@ -197,7 +273,7 @@ object ProfileRenderer {
             val ry = y(p.elevationAt(pos))
             c.drawCircle(rx, ry, r + 1.5f * px, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE })
             c.drawCircle(rx, ry, r, dot)
-            state.gradePct?.let { g -> drawGrade(c, g, rx, ry, left, right, top, bottom, lineH, px, state.smooth) }
+            if (boxGrade == null) state.gradePct?.let { g -> drawGrade(c, g, rx, ry, left, right, top, bottom, lineH, px, state.smooth) }
         }
         return bmp
     }

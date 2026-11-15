@@ -152,6 +152,8 @@ class MainActivity : Activity() {
         preview("Downhill: the instant grade in blue, with its sign", ProfileState.sample(Zoom.WHOLE, atM = 26_000.0).copy(gradePct = -8.0), 478, 126)
         preview("Taller cell (478×212)", ProfileState.sample(Zoom.WHOLE), 478, 212)
         preview("Half cell (238×126)", ProfileState.sample(Zoom.WHOLE), 238, 126)
+        preview("Half page (478×410), on a climb: the grade again, big, where the profile leaves room", ProfileState.sample(Zoom.CLIMB, atM = 17_000.0).copy(gradePct = 11.0), 478, 410)
+        preview("Half page, downhill: the big grade on the right", ProfileState.sample(Zoom.WHOLE, atM = 26_000.0).copy(gradePct = -8.0), 478, 410)
         preview("No route", ProfileState(), 478, 126)
 
         setContentView(ScrollView(this).apply { addView(col, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)); setBackgroundColor(0xFFF4F2EE.toInt()) })
