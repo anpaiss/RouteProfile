@@ -7,13 +7,13 @@
 
 > **Version 1.0** — install the APK from the [latest release](../../releases/latest/download/RouteProfile.apk).
 
-The whole route under the map, coloured by gradient, on the Hammerhead Karoo: where you are on it, and how many kilometres and metres of climbing are still to go.
+The whole route on the map page, coloured by gradient, on the Hammerhead Karoo: where you are on it, and how many kilometres and metres of climbing are still to go.
 
 ![RouteProfile in the bottom row of the map page](docs/map.png)
 
 ## What it does
 
-RouteProfile adds one data field, **Route profile**, made for the bottom row of the map page: the map keeps most of the screen, the profile of the route you are navigating sits underneath, full width.
+RouteProfile adds one data field, **Route profile**, made for the map page: the map keeps most of the screen, the profile of the route you are navigating sits in a full-width row **at the top** (see Install for why not at the bottom).
 
 - **The whole route**, start to finish. The part you have ridden is grey; the part ahead is coloured by gradient: green below 3 %, yellow 3–6 %, orange 6–9 %, red 9–12 %, dark red from 12 %, blue downhill.
 - **Where you are**: a dot and a vertical line, and beside the dot the **instant grade** of the stretch you are on (`8 %`, `−5 %` downhill), the value of the Karoo's own Grade field, in the same colours as the profile. It never covers the numbers at the top; with no grade from the Karoo it is not shown.
@@ -33,7 +33,9 @@ It reads the route the Karoo is navigating (a route you follow, or a destination
 
 1. Download [`RouteProfile.apk`](../../releases/latest/download/RouteProfile.apk) from the latest release.
 2. Sideload it onto the Karoo, for example with `adb install -r RouteProfile.apk`, or with the Hammerhead companion app.
-3. In the Karoo profile editor open the **Map Page**, move the fields to the bottom with the arrow, and add **Route profile** (under RouteProfile) as the third field: the third field of the map page takes the whole width. It can also go alone, or on any data page.
+3. In the Karoo profile editor open the **Map Page**, keep the fields at the top (the arrow button on the right of the fields moves them between top and bottom), and add **Route profile** (under RouteProfile) as the third field: the third field of the map page takes the whole width. It can also go alone, or on any data page.
+
+   **On the map page, put it at the top, not at the bottom.** While navigating, the Karoo draws your position arrow low on the map, and a full-width field at the bottom covers it exactly: you would see the route but not where you are. An extension cannot move the Karoo's map cursor. At the top the only thing that can cover the field is a Karoo banner such as *ACQUIRING GPS…*, and only while it is shown.
 
 ![Route profile in the field picker, with its preview](docs/picker.png)
 
