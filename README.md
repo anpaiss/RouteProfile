@@ -9,7 +9,7 @@
 
 The whole route on the map page, coloured by gradient, on the Hammerhead Karoo: where you are on it, and how many kilometres and metres of climbing are still to go.
 
-![RouteProfile in the bottom row of the map page](docs/map.png)
+![RouteProfile at the top of the map page: the climb ahead, 8.1 km, +778 m, 10 % (a simulated ride on the Menador)](docs/map.png)
 
 ## What it does
 
