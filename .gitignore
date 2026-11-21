@@ -19,3 +19,6 @@ reddit_post*.md
 
 # Screenshots for README and Reddit, some with the map near home: never committed
 screenshots/
+
+# Reddit images and post: local only
+reddit_images/
