@@ -142,7 +142,7 @@ object ProfileRenderer {
         val lineH = (bmp.height * 0.24f).coerceIn(14 * px, 24 * px)
         val pad = 4 * px
         val climb = state.climb
-        // A low cell (the map page's bottom row) has no room for the big grade over the profile:
+        // A low cell (the map page's top row) has no room for the big grade over the profile:
         // there the instant grade sits in a coloured box at the left of the top line, instead of the
         // view label and of the pill by the dot (Andrea 15/11, option B of the preview)
         val small = !state.graphOnly && bmp.height - 2 * pad - lineH - 3 * px < 60 * px

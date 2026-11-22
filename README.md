@@ -5,7 +5,7 @@
 
 # RouteProfile
 
-> **Version 1.0** — install the APK from the [latest release](../../releases/latest/download/RouteProfile.apk).
+> **Version 1.0.1** — install the APK from the [latest release](../../releases/latest/download/RouteProfile.apk).
 
 The whole route on the map page, coloured by gradient, on the Hammerhead Karoo: where you are on it, and how many kilometres and metres of climbing are still to go.
 
@@ -28,6 +28,10 @@ RouteProfile adds one data field, **Route profile**, made for the map page: the 
 It reads the route the Karoo is navigating (a route you follow, or a destination the Karoo routes you to) and the Karoo's own position along it; when the Karoo does not give one, the GPS fix is placed on the route line.
 
 ![A tap: the next 10 km](docs/zoom.png)
+
+**On a data page** the field can take more room. In a tall cell (half a page, for example) the instant grade comes back **big** in the free space above the profile: top left on a climb, top right on a descent. When the profile leaves no room (a rolling route) it is left out.
+
+![Half page: the grade, big, where the profile leaves room (field preview of the app: 11 % on a climb, −8 % downhill)](docs/half-page.png)
 
 ## Install
 

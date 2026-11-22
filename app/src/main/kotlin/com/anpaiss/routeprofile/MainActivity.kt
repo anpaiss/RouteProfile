@@ -14,7 +14,7 @@ import android.widget.TextView
 
 /**
  * The app page: what the field does, the auto-zoom switch and the FIELD PREVIEW drawn by the
- * real renderer at the Karoo 3 cell sizes (full-width bottom row of the map page, a taller
+ * real renderer at the Karoo 3 cell sizes (full-width top row of the map page, a taller
  * cell, and a half cell).
  */
 class MainActivity : Activity() {
@@ -31,7 +31,7 @@ class MainActivity : Activity() {
         }
         col.addView(text("RouteProfile", 26f, bold = true))
         col.addView(text("The whole route's elevation, coloured by gradient, with where you are and the distance and climb still to go. " +
-            "Put \"Route profile\" in the bottom row of the map page, full width (add it as the third field, or alone). " +
+            "Put \"Route profile\" in the top row of the map page, full width (add it as the third field, or alone): at the bottom it would cover your position arrow. " +
             "Tap the field: whole route, the climb (when one is near), next 10, 5, 2 km, whole route again; before the start or with the ride paused, the list of the climbs.", 15f))
 
         val sw = Switch(this).apply {
@@ -141,7 +141,7 @@ class MainActivity : Activity() {
                 scaleType = ImageView.ScaleType.FIT_XY
             }, LinearLayout.LayoutParams(shownW, shownW * h / w).apply { bottomMargin = dp(8) })
         }
-        preview("Map page, bottom row (478×126): whole route", ProfileState.sample(Zoom.WHOLE), 478, 126)
+        preview("Map page, top row (478×126): whole route", ProfileState.sample(Zoom.WHOLE), 478, 126)
         preview("Auto zoom, approaching a climb: the whole climb fitted to the cell", ProfileState.sample(Zoom.CLIMB), 478, 126)
         preview("On the climb: what is left to the top", ProfileState.sample(Zoom.CLIMB, atM = 17_000.0), 478, 126)
         preview("On the long climb, auto zoom set to 2 km", ProfileState.sample(Zoom.CLIMB, atM = 5_000.0).let { it.copy(climb = it.climbs[0], climbSpanM = 2_000.0) }, 478, 126)
