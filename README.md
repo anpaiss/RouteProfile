@@ -82,8 +82,8 @@ Open **RouteProfile** from the Karoo's app list.
 ## Is it safe?
 
 - The code is all here, open source.
-- `RouteProfile.apk` 1.0 on [VirusTotal](https://www.virustotal.com/gui/file/4abd6319522bdfcbede80801c2a794a16af12b8c5d40c1811779a4c5f5dfec33): none of the 65 engines flag it.
-- Its SHA-256 is `4abd6319522bdfcbede80801c2a794a16af12b8c5d40c1811779a4c5f5dfec33`; compare it with the file you downloaded (`certutil -hashfile RouteProfile.apk SHA256` on Windows, `sha256sum RouteProfile.apk` elsewhere).
+- `RouteProfile.apk` 1.0.1 on [VirusTotal](https://www.virustotal.com/gui/file/e271015a37ace2e5edad76beb24b872d31bd79924017eb6a00bac03e2cdef020): none of the 66 engines flag it.
+- Its SHA-256 is `e271015a37ace2e5edad76beb24b872d31bd79924017eb6a00bac03e2cdef020`; compare it with the file you downloaded (`certutil -hashfile RouteProfile.apk SHA256` on Windows, `sha256sum RouteProfile.apk` elsewhere).
 - The APK is built by GitHub Actions from the tagged source, with a signed provenance; each release's notes link its VirusTotal report. Check the provenance with `gh attestation verify RouteProfile.apk -R anpaiss/RouteProfile`.
 - It asks for no permission and makes no network call: it only reads what the Karoo shares with extensions.
 
