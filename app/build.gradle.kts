@@ -94,7 +94,7 @@ val generateManifest by tasks.registering {
               "latestVersion": ${q(version)},
               "latestVersionCode": $code,
               "developer": "Andrea Paissan",
-              "description": ${q("The whole route's elevation under the map, coloured by gradient, with where you are and the distance and climb still to go. Tap for the next 10 km; auto zoom on the climbs you choose.")},
+              "description": ${q("The whole route's elevation above the map, coloured by gradient, with where you are and the distance and climb still to go. Tap for the next 10 km; auto zoom on the climbs you choose.")},
               "releaseNotes": ${q(notes)},
               "screenshotUrls": [
                 ${q("https://raw.githubusercontent.com/anpaiss/RouteProfile/master/docs/map.png")},
